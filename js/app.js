@@ -9,10 +9,13 @@ function shareWA(){
   const text = `🕌 *Buletin Jumat Masjid At-Taubah BNN RI*\n\n*${CONFIG.title}*\n\nMari membaca, mengambil hikmah, dan menyebarkan kebaikan.\n\n👉 ${location.href}`;
   window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank","noopener");
 }
-async function copyLink(){
-  try{await navigator.clipboard.writeText(location.href);alert("Link Buletin Jumat sudah disalin.");}
-  catch(e){prompt("Salin link Buletin Jumat:",location.href);}
+catch(e){prompt("Salin link Buletin Jumat:",location.href);}
 }
 function latest(){
   window.location.href = "edisi/001/";
+}
+
+function submitWA(){
+  const text = `✍️ *Kirim Tulisan — Buletin Jumat Masjid At-Taubah BNN RI*\n\nAssalamu'alaikum. Saya ingin mengirim tulisan untuk dipertimbangkan sebagai bahan Buletin Jumat.\n\nNama:\nJudul tulisan:\n\nNaskah/file akan saya kirim melalui WhatsApp.\n\nTerima kasih.`;
+  window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank","noopener");
 }

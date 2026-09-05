@@ -17,3 +17,5 @@
 
 ## Catatan
 Nama akun `dkmattaubah` adalah contoh sesuai rencana. Jika akun GitHub berbeda, URL akan mengikuti nama akun sebenarnya.
+
+Pengiriman tulisan dilakukan langsung melalui WhatsApp, jadi tidak diperlukan halaman/form khusus.

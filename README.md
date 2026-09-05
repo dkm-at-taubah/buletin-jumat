@@ -8,7 +8,7 @@ Sistem full v1.0 untuk Buletin Jumat digital.
 - Pembaca cukup menerima dan klik link WhatsApp.
 - Web adalah versi utama.
 - Web/link edisi adalah media utama; PDF tidak menjadi bagian dari alur publik.
-- Kirim Tulisan adalah pintu terpisah dari isi buletin.
+- Pengiriman tulisan dilakukan langsung melalui WhatsApp.
 - QRIS resmi DKM akan menjadi aset bersama setelah diberikan.
 - Data penulis tidak ditampilkan di halaman publik.
 
@@ -21,8 +21,6 @@ buletin-jumat/
 │   │   └── index.html
 │   └── 002/
 │       └── (disiapkan saat Jumat berikutnya)
-├── kirim-tulisan/
-│   └── index.html
 ├── assets/
 │   ├── logo-dkm.jpg
 │   └── qris-infaq-dkm.png      # tambahkan QRIS resmi DKM nanti
@@ -51,9 +49,8 @@ Edisi:
 Edisi berikutnya:
 `.../edisi/002/`
 
-## Submission
-Form "Kirim Tulisan" sudah memiliki data penulis, naskah, upload file, persetujuan, validasi dasar, dan halaman hasil pengiriman.
-Endpoint backend sengaja dibuat sebagai konfigurasi agar bisa disambungkan ke Google Apps Script/backend DKM tanpa mengubah tampilan.
+## Kirim tulisan
+Pengunjung cukup menekan tombol "Punya Tulisan untuk Dibagi?". WhatsApp terbuka dengan pesan awal untuk dikirim ke kontak Redaksi DKM. Naskah/file kemudian dapat dikirim langsung melalui WhatsApp.
 
 ## Media utama
 Buletin dibaca langsung melalui link edisi. Jamaah tidak perlu mengunduh aplikasi dan tidak perlu mencari arsip; link edisi dibagikan setiap Jumat melalui WhatsApp.
