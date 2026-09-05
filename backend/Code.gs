@@ -60,6 +60,8 @@ function doPost(e) {
   try { body = JSON.parse(e.postData.contents || '{}'); } catch (_) {}
   const action = e.parameter.action || body.action || '';
   if (action === 'login') return json_(login_(body.user, body.password));
+  // Form kirim tulisan adalah endpoint publik; tidak memerlukan token admin.
+  if (action === 'saveSubmission') return json_(saveSubmission_(body));
   const token = e.parameter.token || body.token || '';
   if (!validToken_(token)) return json_({ok:false,message:'Sesi tidak valid.'});
 
@@ -68,7 +70,6 @@ function doPost(e) {
   if (action === 'getEdition') return json_(getEdition_(body.no));
   if (action === 'publishEdition') return json_(publishEdition_(body));
   if (action === 'saveSettings') return json_(saveSettings_(body));
-  if (action === 'saveSubmission') return json_(saveSubmission_(body));
   return json_({ok:false,message:'Action tidak dikenal.'});
 }
 
@@ -167,8 +168,29 @@ function saveSettings_(d) {
 function saveSubmission_(d) {
   setup();
   const sh=ss_().getSheetByName(SHEETS.SUBMISSIONS);
-  sh.appendRow([Utilities.getUuid(),d.name||'',d.displayName||'',d.email||'',d.wa||'',d.title||'',d.category||'',d.text||'',d.fileUrl||'',d.status||'Masuk',new Date()]);
-  return {ok:true,message:'Tulisan tercatat.'};
+  let fileUrl = d.fileUrl || '';
+  try {
+    if (d.fileData && d.fileName) {
+      const bytes = Utilities.base64Decode(String(d.fileData));
+      if (bytes.length > 5 * 1024 * 1024) throw new Error('File terlalu besar. Maksimal 5 MB.');
+      const props = PropertiesService.getScriptProperties();
+      let folderId = props.getProperty('SUBMISSION_FOLDER_ID') || '';
+      let folder;
+      if (folderId) folder = DriveApp.getFolderById(folderId);
+      else {
+        const it = DriveApp.getFoldersByName('Buletin At-Taubah - Naskah Masuk');
+        folder = it.hasNext() ? it.next() : DriveApp.createFolder('Buletin At-Taubah - Naskah Masuk');
+        props.setProperty('SUBMISSION_FOLDER_ID', folder.getId());
+      }
+      const safeName = String(d.fileName).replace(/[\\/:*?\"<>|#%{}]/g,'_').slice(0,180);
+      const blob = Utilities.newBlob(bytes, d.fileType || MimeType.PLAIN_TEXT, safeName);
+      fileUrl = folder.createFile(blob).getUrl();
+    }
+  } catch (err) {
+    return {ok:false,message:'File gagal disimpan: '+err.message};
+  }
+  sh.appendRow([Utilities.getUuid(),d.name||'',d.displayName||'',d.email||'',d.wa||'',d.title||'',d.category||'',d.text||'',fileUrl,'Masuk',new Date()]);
+  return {ok:true,message:'Tulisan berhasil diterima Redaksi.',fileUrl:fileUrl};
 }
 
 /**

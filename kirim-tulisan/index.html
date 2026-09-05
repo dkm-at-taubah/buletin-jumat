@@ -1,64 +1,52 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0876d8"><title>Kirim Tulisan — Buletin Jumat</title><link rel="stylesheet" href="../css/style.css"></head><body>
-<div class="top"><div class="wrap"><span>Pengurus DKM Masjid At-Taubah BNN RI</span><span>Kirim Tulisan</span></div></div>
-<header class="mast"><div class="wrap mast-inner">
-<div><img class="logo" src="../assets/logo-dkm.jpg" alt="Logo DKM Masjid At-Taubah BNN RI"></div>
-<div><div class="eyebrow">Kontribusi Jamaah</div><div class="bigtitle"><span>KIRIM</span><span>TULISAN</span></div><div class="brandline">Buletin Jumat</div><div class="tagline">Satu tulisan dapat menjadi jalan kebaikan bagi orang lain.</div></div>
-<div class="mast-quote">Tulisan yang masuk akan dibaca dan dikurasi oleh Redaksi sebelum diterbitkan.</div>
-</div></header>
-<main class="wrap form-page">
-<div class="form-card">
-<div class="eyebrow" style="color:var(--blue)">Redaksi DKM At-Taubah BNN RI</div>
-<h1 class="form-title">✍️ Kirim Tulisan</h1>
-<p>Silakan kirim tulisan untuk dipertimbangkan dalam Buletin Jumat. Tulisan <strong>tidak otomatis diterbitkan</strong>; redaksi akan melakukan seleksi, penyuntingan, dan verifikasi materi keislaman sebelum publikasi.</p>
-<div class="info">Jika tulisan menggunakan ayat atau hadis, cukup tuliskan kutipannya di dalam naskah. <strong>Anda tidak perlu mengisi kolom sumber secara terpisah.</strong> Redaksi akan membantu memeriksa sumbernya.</div>
-
-<form id="submissionForm" enctype="multipart/form-data">
-<div class="section-label">1. DATA PENULIS</div>
-<label>Nama lengkap<input required name="nama" autocomplete="name" placeholder="Nama lengkap"></label>
-<label>Nama yang ingin ditampilkan<input required name="displayName" placeholder="Contoh: Ahmad"></label>
-<label>Email<input required type="email" name="email" autocomplete="email" placeholder="nama@email.com"></label>
-<label>Nomor WhatsApp<input required name="wa" inputmode="tel" placeholder="08xxxxxxxxxx"></label>
-<label>Instansi / komunitas <span class="src">(opsional)</span><input name="instansi" placeholder="Opsional"></label>
-
-<div class="section-label">2. NASKAH</div>
-<label>Judul tulisan<input required name="judul" placeholder="Judul tulisan"></label>
-<label>Kategori<select required name="kategori">
-<option>Renungan</option><option>Hikmah</option><option>Al-Qur'an</option><option>Hadis</option><option>Keluarga</option><option>Pendidikan</option><option>Pengalaman</option><option>Suara Jamaah</option>
-</select></label>
-<label>Isi / naskah<textarea required name="isi" placeholder="Tempelkan tulisan Anda di sini..."></textarea></label>
-<label>File naskah <span class="src">(opsional — PDF/DOC/DOCX/TXT)</span><input type="file" name="file" accept=".pdf,.doc,.docx,.txt,.odt"></label>
-
-<div class="section-label">3. PERNYATAAN</div>
-<label class="checkline"><input required type="checkbox" name="consent"> <span>Saya menyatakan tulisan ini dapat diproses oleh Redaksi Buletin Jumat Masjid At-Taubah BNN RI untuk seleksi, penyuntingan, dan publikasi.</span></label>
-<div class="form-actions"><button class="btn primary" type="submit">📨 Kirim ke Redaksi</button><a class="btn" href="../">← Kembali ke Buletin</a></div>
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kirim Tulisan — Buletin Jumat At-Taubah</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="top"><div class="wrap"><span>Pengurus DKM Masjid At-Taubah BNN RI</span><span>Redaksi Buletin Jumat</span></div></div>
+<header class="mast"><div class="wrap mast-inner"><div><img class="logo" src="../assets/logo-dkm.jpg" alt="Logo DKM"></div><div><div class="eyebrow">Buletin Jumat</div><div class="bigtitle"><span>MASJID</span><span>AT-TAUBAH</span></div><div class="brandline">BNN RI</div><div class="tagline">Ruang berbagi ilmu, gagasan, dan kebaikan.</div></div><div class="mast-quote">“Satu tulisan yang baik dapat menjadi jalan bagi orang lain untuk mendapatkan manfaat.”</div></div></header>
+<main class="wrap form-page"><section class="form-card">
+<div class="ribbon">✍️ TERIMA TULISAN</div>
+<h1 class="form-title">Punya Tulisan untuk Dibagi?</h1>
+<p>Kirim tulisan Anda kepada Redaksi Buletin Jumat Masjid At-Taubah BNN RI. Tulisan akan diterima dan dipertimbangkan oleh Redaksi sebelum diterbitkan.</p>
+<div class="info">Silakan lengkapi data berikut. Naskah dapat ditulis langsung pada form atau dikirim sebagai file.</div>
+<form id="submissionForm">
+<div class="section-label">Data Pengirim</div>
+<label>Nama lengkap *<input id="name" required maxlength="120" autocomplete="name"></label>
+<label>Nama yang ingin ditampilkan<input id="displayName" maxlength="120" placeholder="Kosongkan jika sama dengan nama lengkap"></label>
+<label>Email *<input id="email" type="email" required maxlength="160" autocomplete="email"></label>
+<label>WhatsApp<input id="wa" type="tel" maxlength="30" placeholder="Contoh: 0812xxxxxxxx"></label>
+<div class="section-label">Naskah</div>
+<label>Judul tulisan *<input id="title" required maxlength="200"></label>
+<label>Kategori *<select id="category" required><option value="">Pilih kategori</option><option>Renungan</option><option>Keislaman</option><option>Keluarga</option><option>Pendidikan</option><option>Kesehatan</option><option>Pengalaman</option><option>Lainnya</option></select></label>
+<label>Isi tulisan<textarea id="text" maxlength="30000" placeholder="Tulis naskah Anda di sini..."></textarea></label>
+<label>Atau upload file naskah<input id="file" type="file" accept=".pdf,.doc,.docx,.txt,.rtf"></label>
+<small>Maksimal 5 MB. Jika mengisi naskah dan upload file sekaligus, keduanya tetap diterima.</small>
+<label class="checkline"><input id="agree" type="checkbox" required> Saya memahami bahwa tulisan akan melalui proses pertimbangan dan penyuntingan Redaksi sebelum diterbitkan.</label>
+<div class="form-actions"><a class="btn" href="../edisi/001/">← Kembali ke Buletin</a><button class="btn primary" id="submitBtn" type="submit">📨 Kirim Tulisan</button></div>
 <div id="status" class="status"></div>
-</form>
-</div></main>
-
-<footer class="footer"><div class="wrap">
-<div><strong>🕌 DKM Masjid At-Taubah BNN RI</strong><br><small>Bersama memakmurkan masjid, menguatkan iman, melayani umat.</small></div>
-<div><small>#JumatBerkah • Syiar • Ilmu • Ukhuwah • Infaq</small></div>
-</div></footer>
-
+</form></section></main>
+<footer class="footer"><div class="wrap"><div><strong>🕌 DKM Masjid At-Taubah BNN RI</strong><br><small>Terima kasih telah ikut berbagi ilmu dan kebaikan.</small></div><div><small>#JumatBerkah • Syiar • Ilmu • Ukhuwah</small></div></div></footer>
 <script>
-const endpoint="";
-document.getElementById("submissionForm").addEventListener("submit", async function(e){
- e.preventDefault();
- const status=document.getElementById("status");
- if(!endpoint){
-   status.innerHTML='<div class="notice"><strong>Form siap.</strong><br>Sistem penerimaan data/file perlu disambungkan ke endpoint Redaksi DKM sebelum digunakan publik. Tampilan dan struktur datanya sudah siap.</div>';
-   return;
- }
- const formData=new FormData(this);
- status.innerHTML='<div class="info">Mengirim...</div>';
+const API='https://script.google.com/macros/s/AKfycbzlzU4MrICT-K2VKofOH6EZOzpnh1L8S2KmSnaTEIpApq619AzHram7COGBsvFhbdulrA/exec';
+const form=document.getElementById('submissionForm'), statusEl=document.getElementById('status'), btn=document.getElementById('submitBtn');
+function status(msg,ok){statusEl.innerHTML='<div class="'+(ok?'info':'notice')+'">'+msg+'</div>';}
+function fileToBase64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]||'');r.onerror=reject;r.readAsDataURL(file);});}
+form.addEventListener('submit',async e=>{
+ e.preventDefault(); const file=document.getElementById('file').files[0];
+ if(!document.getElementById('text').value.trim() && !file){status('Silakan isi naskah atau upload file naskah.',false);return;}
+ if(file && file.size>5*1024*1024){status('File terlalu besar. Maksimal 5 MB.',false);return;}
+ btn.disabled=true;btn.textContent='⏳ Mengirim...';statusEl.innerHTML='';
  try{
-   const res=await fetch(endpoint,{method:"POST",body:formData});
-   if(!res.ok) throw new Error("Gagal mengirim");
-   this.reset();
-   status.innerHTML='<div class="info"><strong>Alhamdulillah, tulisan sudah diterima.</strong><br>Redaksi akan memproses dan menghubungi penulis bila diperlukan.</div>';
- }catch(err){
-   status.innerHTML='<div class="notice"><strong>Pengiriman belum berhasil.</strong><br>Silakan coba kembali atau hubungi Redaksi DKM.</div>';
- }
+  const body={action:'saveSubmission',name:document.getElementById('name').value.trim(),displayName:document.getElementById('displayName').value.trim(),email:document.getElementById('email').value.trim(),wa:document.getElementById('wa').value.trim(),title:document.getElementById('title').value.trim(),category:document.getElementById('category').value,text:document.getElementById('text').value.trim(),fileName:file?file.name:'',fileType:file?file.type:'',fileData:file?await fileToBase64(file):''};
+  const res=await fetch(API+'?action=saveSubmission',{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+  const raw=await res.text(); let data; try{data=JSON.parse(raw)}catch(_){throw new Error('Server tidak mengembalikan jawaban yang dapat dibaca.');}
+  if(!data.ok) throw new Error(data.message||'Pengiriman gagal.');
+  status('Alhamdulillah, tulisan berhasil dikirim ke Redaksi. Terima kasih sudah berbagi.',true); form.reset();
+ }catch(err){status(err.message||'Tidak dapat menghubungi server. Silakan coba lagi.',false);}
+ finally{btn.disabled=false;btn.textContent='📨 Kirim Tulisan';}
 });
 </script></body></html>
