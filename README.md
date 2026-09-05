@@ -50,7 +50,7 @@ Edisi berikutnya:
 `.../edisi/002/`
 
 ## Kirim tulisan
-Pengunjung cukup menekan tombol "Punya Tulisan untuk Dibagi?". WhatsApp terbuka dengan pesan awal untuk dikirim ke kontak Redaksi DKM. Naskah/file kemudian dapat dikirim langsung melalui WhatsApp.
+Pengunjung cukup menekan tombol "Punya Tulisan untuk Dibagi?". WhatsApp terbuka dengan pesan awal untuk dikirim ke kontak Redaksi DKM. Naskah/file kemudian dapat dikirim langsung melalui WhatsApp. Nomor Redaksi diatur pada `js/app.js` atau nantinya dipusatkan lewat backend.
 
 ## Media utama
 Buletin dibaca langsung melalui link edisi. Jamaah tidak perlu mengunduh aplikasi dan tidak perlu mencari arsip; link edisi dibagikan setiap Jumat melalui WhatsApp.
@@ -59,3 +59,6 @@ Buletin dibaca langsung melalui link edisi. Jamaah tidak perlu mengunduh aplikas
 - Ganti placeholder QRIS dengan QRIS resmi DKM.
 - Hubungkan form ke backend sebelum publikasi.
 - Verifikasi semua ayat, terjemahan, hadis, nomor hadis, dan atribusi oleh redaksi.
+
+## Admin
+Panel admin berada di `/admin/`. Backend menggunakan Google Apps Script + Google Spreadsheet. Token GitHub, bila digunakan untuk publish otomatis, disimpan di Script Properties dan tidak pernah dikirim ke browser.

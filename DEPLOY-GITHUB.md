@@ -19,3 +19,6 @@
 Nama akun `dkmattaubah` adalah contoh sesuai rencana. Jika akun GitHub berbeda, URL akan mengikuti nama akun sebenarnya.
 
 Pengiriman tulisan dilakukan langsung melalui WhatsApp, jadi tidak diperlukan halaman/form khusus.
+
+## Admin
+Panel admin berada di `/admin/`. Backend menggunakan Google Apps Script + Google Spreadsheet. Token GitHub, bila digunakan untuk publish otomatis, disimpan di Script Properties dan tidak pernah dikirim ke browser.

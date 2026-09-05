@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06356d">
+<title>Admin — Buletin Jumat At-Taubah</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.admin-shell{max-width:1100px;margin:0 auto;padding:18px 0 40px}
+.admin-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.admin-title{font:700 32px/1.1 Georgia,serif;color:var(--navy);margin:0}
+.admin-grid{display:grid;grid-template-columns:260px 1fr;gap:16px}
+.admin-nav{background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:0 8px 24px rgba(8,66,120,.08);height:max-content}
+.admin-nav button{width:100%;border:0;background:transparent;padding:12px;text-align:left;border-radius:10px;font-weight:800;color:var(--navy);cursor:pointer}
+.admin-nav button.active,.admin-nav button:hover{background:var(--sky)}
+.admin-panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 24px rgba(8,66,120,.08)}
+.admin-panel h2{font:700 26px/1.15 Georgia,serif;color:var(--navy);margin:0 0 14px}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{padding:16px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,#fff,#f3f9ff)}
+.stat b{display:block;font-size:28px;color:var(--blue)}
+.data-list{display:grid;gap:10px;margin-top:14px}
+.data-item{padding:14px;border:1px solid var(--line);border-radius:12px;background:#fbfdff}
+.data-item strong{color:var(--navy)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.admin-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+.admin-table th,.admin-table td{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}
+.hidden{display:none!important}
+.login-card{max-width:500px;margin:60px auto}
+.admin-note{margin:10px 0}
+textarea.admin-area{min-height:280px}
+@media(max-width:760px){
+ .admin-grid{grid-template-columns:1fr}.statgrid,.row{grid-template-columns:1fr}
+ .admin-head{align-items:flex-start;flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><span>Pengurus DKM Masjid At-Taubah BNN RI</span><span>ADMIN</span></div></div>
+<main class="wrap admin-shell">
+<section id="loginView" class="card login-card cardpad">
+<div class="eyebrow" style="color:var(--blue)">Ruang Pengurus</div>
+<h1 class="admin-title">Admin Buletin Jumat</h1>
+<p>Masuk untuk mengelola edisi, tulisan masuk, dan pengaturan publikasi.</p>
+<div class="info">Sistem admin menggunakan Google Apps Script sebagai backend. Isi URL endpoint setelah backend dipasang.</div>
+<label>Email / ID Admin<input id="loginUser" autocomplete="username" placeholder="admin"></label>
+<label>Password<input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••"></label>
+<button class="btn primary" style="margin-top:18px;width:100%" onclick="login()">🔐 Masuk</button>
+<div id="loginMsg" class="admin-note"></div>
+</section>
+
+<section id="dashboardView" class="hidden">
+<div class="admin-head"><div><div class="eyebrow" style="color:var(--blue)">Dashboard Pengurus</div><h1 class="admin-title">Kontrol Buletin Jumat</h1></div><button class="btn" onclick="logout()">Keluar</button></div>
+<div class="admin-grid">
+<nav class="admin-nav">
+<button class="active" data-tab="overview">📊 Ringkasan</button>
+<button data-tab="editions">🕌 Kelola Edisi</button>
+<button data-tab="submissions">✍️ Tulisan Masuk</button>
+<button data-tab="settings">⚙️ Pengaturan</button>
+</nav>
+<div>
+<section id="tab-overview" class="admin-panel tab">
+<h2>Ringkasan</h2>
+<div class="statgrid"><div class="stat"><span>Edisi terbit</span><b id="statEditions">—</b></div><div class="stat"><span>Tulisan masuk</span><b id="statSubmissions">—</b></div><div class="stat"><span>Edisi terbaru</span><b id="statLatest">—</b></div></div>
+<div class="data-list" id="overviewList"></div>
+</section>
+
+<section id="tab-editions" class="admin-panel tab hidden">
+<h2>Kelola Edisi</h2>
+<div class="info admin-note">Buat edisi Jumat berikutnya dari panel ini. Data disimpan di backend dan dapat diterbitkan ke struktur publik sesuai konfigurasi GitHub.</div>
+<div class="row">
+<label>Nomor edisi<input id="edNo" placeholder="002"></label>
+<label>Tanggal Jumat<input id="edDate" type="date"></label>
+</div>
+<label>Judul tema<input id="edTitle" placeholder="Judul Buletin Jumat"></label>
+<label>Ayat Arab<textarea id="edAyah" class="admin-area" placeholder="Teks Arab ayat"></textarea></label>
+<label>Terjemahan ayat<textarea id="edAyahTrans" placeholder="Terjemahan ayat"></textarea></label>
+<label>Referensi ayat<input id="edAyahRef" placeholder="QS. ..."></label>
+<label>Hadis Arab<textarea id="edHadith" class="admin-area" placeholder="Teks Arab hadis"></textarea></label>
+<label>Terjemahan hadis<textarea id="edHadithTrans" placeholder="Terjemahan hadis"></textarea></label>
+<label>Referensi hadis<input id="edHadithRef" placeholder="HR. ..."></label>
+<label>Renungan utama<textarea id="edArticle" class="admin-area" placeholder="Isi renungan"></textarea></label>
+<label>Untuk direnungkan<textarea id="edReflection" placeholder="Satu poin per baris"></textarea></label>
+<label>Doa Arab<textarea id="edDoa" class="admin-area" placeholder="Teks Arab doa"></textarea></label>
+<label>Terjemahan doa<textarea id="edDoaTrans" placeholder="Terjemahan doa"></textarea></label>
+<label>Referensi doa<input id="edDoaRef" placeholder="QS. ..."></label>
+<div class="form-actions"><button class="btn primary" onclick="saveEdition()">💾 Simpan Edisi</button><button class="btn wa" onclick="publishEdition()">🚀 Terbitkan Edisi</button></div>
+<div id="editionMsg" class="admin-note"></div>
+<div id="editionList" class="data-list"></div>
+</section>
+
+<section id="tab-submissions" class="admin-panel tab hidden">
+<h2>Tulisan Masuk</h2>
+<div class="info">Karena pengiriman publik dilakukan melalui WhatsApp, admin dapat mencatat naskah yang masuk di sini setelah diterima, lalu memberi status proses.</div>
+<div class="data-list" id="submissionList"></div>
+</section>
+
+<section id="tab-settings" class="admin-panel tab hidden">
+<h2>Pengaturan</h2>
+<label>Nomor WhatsApp Redaksi<input id="waNumber" placeholder="628xxxxxxxxxx"></label>
+<label>Nama Redaksi<input id="redactionName" placeholder="Redaksi Buletin Jumat"></label>
+<label>URL backend Apps Script<input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec"></label>
+<div class="form-actions"><button class="btn primary" onclick="saveSettings()">💾 Simpan Pengaturan</button></div>
+<div id="settingsMsg" class="admin-note"></div>
+</section>
+</div></div>
+</section>
+</main>
+<script>
+const KEY="bt_admin_token";
+let API = localStorage.getItem("bt_api_url") || "";
+
+function apiFetch(action, options={}){
+  if(!API) return Promise.reject(new Error("URL backend belum diatur."));
+  const sep=API.includes("?")?"&":"?";
+  const token=localStorage.getItem(KEY)||"";
+  const url=API+sep+"action="+encodeURIComponent(action)+"&token="+encodeURIComponent(token);
+  return fetch(url,options).then(r=>r.json());
+}
+function showLoginMsg(t,ok=false){document.getElementById("loginMsg").innerHTML='<div class="'+(ok?'info':'notice')+'">'+t+'</div>'}
+function login(){
+  const u=document.getElementById("loginUser").value.trim(), p=document.getElementById("loginPass").value;
+  if(!API){showLoginMsg("Backend belum diatur. Isi URL backend pada konfigurasi browser atau pasang Apps Script terlebih dahulu.");return;}
+  apiFetch("login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user:u,password:p})})
+  .then(d=>{if(!d.ok)throw new Error(d.message||"Login gagal");localStorage.setItem(KEY,d.token);showDashboard();})
+  .catch(e=>showLoginMsg(e.message));
+}
+function showDashboard(){document.getElementById("loginView").classList.add("hidden");document.getElementById("dashboardView").classList.remove("hidden");loadAll();}
+function logout(){localStorage.removeItem(KEY);location.reload();}
+document.querySelectorAll(".admin-nav button").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".admin-nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+ document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));
+ document.getElementById("tab-"+b.dataset.tab).classList.remove("hidden");
+});
+function loadAll(){
+ apiFetch("dashboard").then(d=>{
+  if(!d.ok)throw new Error(d.message);
+  document.getElementById("statEditions").textContent=d.editions.length;
+  document.getElementById("statSubmissions").textContent=d.submissions.length;
+  document.getElementById("statLatest").textContent=d.latest||"—";
+  document.getElementById("overviewList").innerHTML=d.editions.slice(0,5).map(e=>`<div class="data-item"><strong>Edisi ${e.no}</strong> — ${e.title}<br><span class="src">${e.date||""} • ${e.status||"draft"}</span></div>`).join("")||'<div class="info">Belum ada data.</div>';
+  renderEditions(d.editions);renderSubmissions(d.submissions);renderSettings(d.settings);
+ }).catch(e=>{document.getElementById("overviewList").innerHTML='<div class="notice">'+e.message+'</div>'});
+}
+function renderEditions(list){document.getElementById("editionList").innerHTML=list.map(e=>`<div class="data-item"><strong>Edisi ${e.no}</strong> — ${e.title}<br><span class="src">${e.date||""} • ${e.status||"draft"}</span><br><button class="btn" style="margin-top:8px" onclick='loadEdition(${JSON.stringify(e.no)})'>Edit</button></div>`).join("")||'<div class="info">Belum ada edisi.</div>'}
+function renderSubmissions(list){document.getElementById("submissionList").innerHTML=list.map(s=>`<div class="data-item"><strong>${escapeHtml(s.title||"Tanpa judul")}</strong><br>${escapeHtml(s.name||"")} • ${escapeHtml(s.wa||"")}<br><span class="src">${escapeHtml(s.status||"Masuk")} • ${escapeHtml(s.created||"")}</span></div>`).join("")||'<div class="info">Belum ada tulisan tercatat.</div>'}
+function renderSettings(s){if(!s)return;document.getElementById("waNumber").value=s.waNumber||"";document.getElementById("redactionName").value=s.redactionName||"";document.getElementById("apiUrl").value=API}
+function escapeHtml(x){return String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function payloadEdition(){
+ return {no:document.getElementById("edNo").value.trim(),date:document.getElementById("edDate").value,title:document.getElementById("edTitle").value,
+ ayah:document.getElementById("edAyah").value,ayahTrans:document.getElementById("edAyahTrans").value,ayahRef:document.getElementById("edAyahRef").value,
+ hadith:document.getElementById("edHadith").value,hadithTrans:document.getElementById("edHadithTrans").value,hadithRef:document.getElementById("edHadithRef").value,
+ article:document.getElementById("edArticle").value,reflection:document.getElementById("edReflection").value,doa:document.getElementById("edDoa").value,doaTrans:document.getElementById("edDoaTrans").value,doaRef:document.getElementById("edDoaRef").value};
+}
+function saveEdition(){apiFetch("saveEdition",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payloadEdition())}).then(d=>{document.getElementById("editionMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>';if(d.ok)loadAll()}).catch(e=>document.getElementById("editionMsg").innerHTML='<div class="notice">'+e.message+'</div>')}
+function publishEdition(){apiFetch("publishEdition",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payloadEdition())}).then(d=>{document.getElementById("editionMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>';if(d.ok)loadAll()}).catch(e=>document.getElementById("editionMsg").innerHTML='<div class="notice">'+e.message+'</div>')}
+function loadEdition(no){apiFetch("getEdition",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({no})}).then(d=>{if(!d.ok)throw new Error(d.message);const e=d.edition;for(const [id,val] of Object.entries({edNo:e.no,edDate:e.date,edTitle:e.title,edAyah:e.ayah,edAyahTrans:e.ayahTrans,edAyahRef:e.ayahRef,edHadith:e.hadith,edHadithTrans:e.hadithTrans,edHadithRef:e.hadithRef,edArticle:e.article,edReflection:e.reflection,edDoa:e.doa,edDoaTrans:e.doaTrans,edDoaRef:e.doaRef}))document.getElementById(id).value=val||"";window.scrollTo({top:document.getElementById("tab-editions").offsetTop-20,behavior:"smooth"})}).catch(e=>alert(e.message))}
+function saveSettings(){
+ const data={waNumber:document.getElementById("waNumber").value.trim(),redactionName:document.getElementById("redactionName").value.trim()};
+ API=document.getElementById("apiUrl").value.trim();localStorage.setItem("bt_api_url",API);
+ if(!API){document.getElementById("settingsMsg").innerHTML='<div class="notice">URL backend belum diisi.</div>';return;}
+ apiFetch("saveSettings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}).then(d=>document.getElementById("settingsMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>').catch(e=>document.getElementById("settingsMsg").innerHTML='<div class="notice">'+e.message+'</div>')
+}
+if(localStorage.getItem(KEY) && API) showDashboard();
+</script>
+</body></html>
