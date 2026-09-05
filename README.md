@@ -7,7 +7,7 @@ Sistem full v1.0 untuk Buletin Jumat digital.
 - Setiap Jumat = satu folder edisi baru.
 - Pembaca cukup menerima dan klik link WhatsApp.
 - Web adalah versi utama.
-- Setiap edisi memiliki PDF yang bisa diunduh langsung.
+- Web/link edisi adalah media utama; PDF tidak menjadi bagian dari alur publik.
 - Kirim Tulisan adalah pintu terpisah dari isi buletin.
 - QRIS resmi DKM akan menjadi aset bersama setelah diberikan.
 - Data penulis tidak ditampilkan di halaman publik.
@@ -18,11 +18,9 @@ buletin-jumat/
 ├── index.html
 ├── edisi/
 │   ├── 001/
-│   │   ├── index.html
-│   │   └── Buletin-Jumat-001.pdf
+│   │   └── index.html
 │   └── 002/
-│       ├── index.html
-│       └── Buletin-Jumat-002.pdf
+│       └── (disiapkan saat Jumat berikutnya)
 ├── kirim-tulisan/
 │   └── index.html
 ├── assets/
@@ -57,8 +55,8 @@ Edisi berikutnya:
 Form "Kirim Tulisan" sudah memiliki data penulis, naskah, upload file, persetujuan, validasi dasar, dan halaman hasil pengiriman.
 Endpoint backend sengaja dibuat sebagai konfigurasi agar bisa disambungkan ke Google Apps Script/backend DKM tanpa mengubah tampilan.
 
-## PDF
-Setiap folder edisi menyimpan file PDF sendiri. Tombol "Download PDF" mengunduh file secara langsung, bukan membuka dialog cetak.
+## Media utama
+Buletin dibaca langsung melalui link edisi. Jamaah tidak perlu mengunduh aplikasi dan tidak perlu mencari arsip; link edisi dibagikan setiap Jumat melalui WhatsApp.
 
 ## Catatan produksi
 - Ganti placeholder QRIS dengan QRIS resmi DKM.

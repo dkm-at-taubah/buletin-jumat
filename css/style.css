@@ -133,3 +133,6 @@ input[type=file]{padding:9px}
  body{background:#fff}.top,.actions,.submit{display:none!important}
  .card{box-shadow:none}.page{padding:8px 0}.footer{margin-top:8px}
 }
+
+.actions-three{grid-template-columns:repeat(3,1fr)}
+@media(max-width:560px){.actions-three{grid-template-columns:1fr}}

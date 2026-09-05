@@ -13,7 +13,7 @@
    `edisi/003/`
    `edisi/004/`
    dst.
-10. Update homepage agar "Edisi Terbaru" menunjuk ke edisi terbaru.
+10. Update homepage agar "Edisi Terbaru" menunjuk ke edisi terbaru. Homepage tidak menampilkan arsip.
 
 ## Catatan
 Nama akun `dkmattaubah` adalah contoh sesuai rencana. Jika akun GitHub berbeda, URL akan mengikuti nama akun sebenarnya.

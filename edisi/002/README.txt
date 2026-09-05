@@ -1,1 +1,1 @@
-Buat Buletin-Jumat-002.pdf setelah materi Edisi 002 final.
+Folder Edisi 002 disiapkan sebagai tempat edisi Jumat berikutnya. Tidak ditampilkan sebagai arsip di homepage. Saat materi siap, ganti index.html dengan materi Edisi 002.
