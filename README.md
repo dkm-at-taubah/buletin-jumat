@@ -9,6 +9,7 @@ Sistem full v1.0 untuk Buletin Jumat digital.
 - Web adalah versi utama.
 - Web/link edisi adalah media utama; PDF tidak menjadi bagian dari alur publik.
 - Pengiriman tulisan dilakukan langsung melalui WhatsApp.
+- Tombol WhatsApp memakai link langsung dan dapat diarahkan ke nomor Redaksi setelah nomor resmi dimasukkan ke konfigurasi.
 - QRIS resmi DKM akan menjadi aset bersama setelah diberikan.
 - Data penulis tidak ditampilkan di halaman publik.
 

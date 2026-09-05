@@ -1,0 +1,28 @@
+SETUP BACKEND ADMIN
+
+1. Buat Google Spreadsheet khusus "Buletin Jumat At-Taubah".
+2. Extensions > Apps Script.
+3. Tempel Code.gs.
+4. Jalankan fungsi setup() sekali dan beri izin.
+5. Project Settings > Script Properties:
+   ADMIN_USER = admin
+   ADMIN_PASSWORD = GANTI_PASSWORD_KUAT
+
+   Untuk publish otomatis ke GitHub (opsional):
+   GITHUB_TOKEN = token GitHub dengan izin Contents untuk repo
+   GITHUB_OWNER = dkm-at-taubah
+   GITHUB_REPO = buletin-jumat
+   GITHUB_BRANCH = main
+
+6. Deploy > New deployment > Web app.
+   Execute as: Me
+   Who has access: sesuai kebutuhan DKM.
+7. Salin URL /exec.
+8. Buka /admin/ di GitHub Pages.
+9. Masukkan URL backend pada menu Pengaturan lalu simpan.
+10. Login menggunakan ADMIN_USER dan ADMIN_PASSWORD.
+
+KEAMANAN:
+- Jangan menaruh GITHUB_TOKEN di HTML/JavaScript.
+- Jangan menaruh password admin di repository.
+- Jika backend dibatasi Google account, gunakan akun pengurus yang memang diberi akses.
