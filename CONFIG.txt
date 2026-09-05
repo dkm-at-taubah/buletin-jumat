@@ -1,0 +1,7 @@
+PRODUKSI — yang perlu diganti:
+1. QRIS resmi DKM -> assets/qris-infaq-dkm.png
+2. Ganti placeholder QRIS di edisi/001/index.html dengan <img>.
+3. Hubungkan form kirim-tulisan ke endpoint backend/Google Apps Script yang menerima data + file.
+4. Verifikasi teks ayat, terjemahan, hadis, nomor hadis, dan seluruh atribusi sebelum terbit.
+5. Ganti tanggal/judul/isi untuk edisi berikutnya.
+6. Jika ingin URL pendek, pasang domain/subdomain kemudian; GitHub Pages tetap bisa menjadi hosting.

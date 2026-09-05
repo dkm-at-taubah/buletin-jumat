@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#075eb7">
+<title>Kirim Tulisan — Buletin Jumat</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="topbar"><div class="container"><span>Pengurus DKM Masjid At-Taubah BNN RI</span><span>Media Syiar Digital</span></div></div>
+<header class="hero">
+  <div class="container hero-inner">
+    <div class="logo-wrap"><img src="../assets/logo-dkm.jpg" alt="Logo DKM Masjid At-Taubah BNN RI"></div>
+    <div>
+      <div class="kicker">Buletin Jumat</div>
+      <div class="title">Masjid At-Taubah</div>
+      <div class="subtitle">BNN RI</div>
+      <div class="tagline">Dari masjid, untuk hati, dan untuk kebaikan.</div>
+    </div>
+    <div class="hero-quote">“Masjid bukan hanya tempat kita datang, tetapi tempat hati kita kembali.”</div>
+  </div>
+</header>
+<div class="edition"><div class="container"><span>EDISI 001</span><span>Jumat, 11 September 2026</span></div></div>
+
+<main class="container">
+
+<section class="section">
+  <div class="card">
+    <div class="kicker">Kontribusi Jamaah</div>
+    <h1 style="font-family:Georgia,serif;font-size:2.3rem;margin:6px 0">✍️ Kirim Tulisan</h1>
+    <p>Silakan kirim tulisan untuk dipertimbangkan Redaksi Buletin Jumat Masjid At-Taubah BNN RI. Tulisan tidak otomatis diterbitkan; setiap naskah melalui proses seleksi, penyuntingan, dan verifikasi sumber keislaman.</p>
+    <div class="notice">Untuk ayat Al-Qur’an dan hadis, cantumkan sumber jika tersedia. Redaksi akan melakukan verifikasi sebelum publikasi.</div>
+  </div>
+</section>
+
+<section class="section">
+  <form class="card form-card" id="submissionForm">
+    <h2 class="section-title"><span class="badge">1</span> DATA PENULIS</h2>
+    <label>Nama lengkap
+      <input required name="nama" autocomplete="name" placeholder="Nama lengkap">
+    </label>
+    <label>Nama yang ingin ditampilkan
+      <input required name="displayName" placeholder="Contoh: Ahmad">
+    </label>
+    <label>Email
+      <input required type="email" name="email" autocomplete="email" placeholder="nama@email.com">
+    </label>
+    <label>Nomor WhatsApp
+      <input required name="wa" inputmode="tel" placeholder="08xxxxxxxxxx">
+    </label>
+    <label>Instansi/komunitas <span class="source">(opsional)</span>
+      <input name="instansi" placeholder="Opsional">
+    </label>
+
+    <h2 class="section-title" style="margin-top:28px"><span class="badge">2</span> NASKAH</h2>
+    <label>Judul tulisan
+      <input required name="judul" placeholder="Judul tulisan">
+    </label>
+    <label>Kategori
+      <select name="kategori">
+        <option>Renungan</option>
+        <option>Hikmah</option>
+        <option>Al-Qur'an</option>
+        <option>Hadis</option>
+        <option>Keluarga</option>
+        <option>Pendidikan</option>
+        <option>Pengalaman</option>
+        <option>Suara Jamaah</option>
+      </select>
+    </label>
+    <label>Isi / ringkasan tulisan
+      <textarea required name="isi" placeholder="Tempelkan tulisan atau ringkasannya di sini..."></textarea>
+    </label>
+    <label>Nama/sumber ayat atau hadis <span class="source">(jika digunakan)</span>
+      <input name="sumber" placeholder="Contoh: QS. ... / HR. ...">
+    </label>
+    <label>File naskah <span class="source">(akan dihubungkan ke sistem penerimaan file)</span>
+      <input type="file" name="file" accept=".doc,.docx,.pdf,.txt,.odt">
+    </label>
+
+    <h2 class="section-title" style="margin-top:28px"><span class="badge">3</span> PERNYATAAN</h2>
+    <label style="font-weight:500">
+      <input required type="checkbox" name="consent" style="width:auto;margin-right:8px">
+      Saya menyatakan tulisan ini dapat diproses oleh Redaksi Buletin Jumat Masjid At-Taubah BNN RI untuk keperluan seleksi, penyuntingan, dan publikasi.
+    </label>
+
+    <div class="form-actions">
+      <button class="btn primary" type="submit">Kirim ke Redaksi</button>
+      <a class="btn" href="../">Kembali ke Buletin</a>
+    </div>
+    <p id="formMessage" class="notice" style="display:none;margin-top:16px"></p>
+  </form>
+</section>
+<script>
+document.getElementById("submissionForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const msg = document.getElementById("formMessage");
+  msg.style.display = "block";
+  msg.innerHTML = "<strong>Form contoh sudah siap.</strong><br>Untuk produksi, form ini perlu dihubungkan ke endpoint penerimaan data/file milik DKM (misalnya Google Apps Script atau backend terpisah).";
+});
+</script>
+
+</main>
+
+<footer class="footer"><div class="container footer-inner">
+  <div><strong>🕌 DKM Masjid At-Taubah BNN RI</strong><br><small>Bersama memakmurkan masjid, menguatkan iman, melayani umat.</small></div>
+  <div><small>#JumatBerkah • #MasjidAtTaubah</small></div>
+</div></footer>
+
+<script src="../js/app.js"></script>
+</body></html>
