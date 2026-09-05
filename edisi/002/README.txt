@@ -1,0 +1,1 @@
+Buat Buletin-Jumat-002.pdf setelah materi Edisi 002 final.

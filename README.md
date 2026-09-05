@@ -1,26 +1,66 @@
-# Buletin Jumat Digital — Masjid At-Taubah BNN RI
+# BULETIN JUMAT DIGITAL — MASJID AT-TAUBAH BNN RI
 
-Versi 1.0 — mobile-first.
+Sistem full v1.0 untuk Buletin Jumat digital.
+
+## Prinsip
+- Satu repository untuk seluruh perjalanan Buletin Jumat.
+- Setiap Jumat = satu folder edisi baru.
+- Pembaca cukup menerima dan klik link WhatsApp.
+- Web adalah versi utama.
+- Setiap edisi memiliki PDF yang bisa diunduh langsung.
+- Kirim Tulisan adalah pintu terpisah dari isi buletin.
+- QRIS resmi DKM akan menjadi aset bersama setelah diberikan.
+- Data penulis tidak ditampilkan di halaman publik.
 
 ## Struktur
-- index.html — halaman depan / edisi terbaru
-- edisi/001/index.html — contoh Edisi 001
-- kirim-tulisan/index.html — pintu pengiriman tulisan terpisah
-- css/style.css — seluruh tampilan
-- js/app.js — Share WhatsApp, copy link, navigasi, print/save PDF
-- assets/logo-dkm.jpg — logo DKM yang diberikan
-- assets/qris-contoh-mytije.png — CONTOH SAJA, BUKAN QRIS DKM
+```text
+buletin-jumat/
+├── index.html
+├── edisi/
+│   ├── 001/
+│   │   ├── index.html
+│   │   └── Buletin-Jumat-001.pdf
+│   └── 002/
+│       ├── index.html
+│       └── Buletin-Jumat-002.pdf
+├── kirim-tulisan/
+│   └── index.html
+├── assets/
+│   ├── logo-dkm.jpg
+│   └── qris-infaq-dkm.png      # tambahkan QRIS resmi DKM nanti
+├── css/style.css
+├── js/app.js
+└── README.md
+```
 
-## Penting
-QRIS yang diunggah pengguna adalah QRIS MyTije/Buku, bukan QRIS DKM Masjid At-Taubah.
-Jangan dipublikasikan sebagai QRIS infaq DKM. Ganti dengan QRIS resmi DKM sebelum produksi.
+## Alur mingguan
+1. Tentukan tema.
+2. Siapkan ayat, hadis sahih, renungan, doa, dan refleksi.
+3. Verifikasi sumber oleh redaksi.
+4. Salin folder edisi terakhir menjadi nomor baru.
+5. Ganti judul/tanggal/isi.
+6. Buat PDF edisi.
+7. Upload ke repository.
+8. Bagikan link edisi ke WhatsApp.
 
-## Cara deploy
-Upload folder ini ke repository GitHub Pages, misalnya:
-dkmattaubah.github.io/buletin-jumat/
+## URL
+Homepage:
+`dkmattaubah.github.io/buletin-jumat/`
 
-Untuk membuat PDF dari edisi:
-buka edisi/001/index.html lalu tekan "Simpan PDF / Cetak" dan pilih "Save as PDF" di browser.
+Edisi:
+`dkmattaubah.github.io/buletin-jumat/edisi/001/`
 
-## Catatan editorial
-Ayat dan hadis pada contoh perlu diverifikasi ulang oleh redaksi DKM sebelum edisi resmi diterbitkan.
+Edisi berikutnya:
+`.../edisi/002/`
+
+## Submission
+Form "Kirim Tulisan" sudah memiliki data penulis, naskah, upload file, persetujuan, validasi dasar, dan halaman hasil pengiriman.
+Endpoint backend sengaja dibuat sebagai konfigurasi agar bisa disambungkan ke Google Apps Script/backend DKM tanpa mengubah tampilan.
+
+## PDF
+Setiap folder edisi menyimpan file PDF sendiri. Tombol "Download PDF" mengunduh file secara langsung, bukan membuka dialog cetak.
+
+## Catatan produksi
+- Ganti placeholder QRIS dengan QRIS resmi DKM.
+- Hubungkan form ke backend sebelum publikasi.
+- Verifikasi semua ayat, terjemahan, hadis, nomor hadis, dan atribusi oleh redaksi.
