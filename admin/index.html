@@ -41,7 +41,6 @@ textarea.admin-area{min-height:280px}
 <div class="eyebrow" style="color:var(--blue)">Ruang Pengurus</div>
 <h1 class="admin-title">Admin Buletin Jumat</h1>
 <p>Masuk untuk mengelola edisi, tulisan masuk, dan pengaturan publikasi.</p>
-<div class="info">Sistem admin terhubung ke Google Apps Script backend yang sudah dikonfigurasi.</div>
 <label>Email / ID Admin<input id="loginUser" autocomplete="username" placeholder="admin"></label>
 <label>Password<input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••"></label>
 <button class="btn primary" style="margin-top:18px;width:100%" onclick="login()">🔐 Masuk</button>
@@ -115,15 +114,25 @@ function apiFetch(action, options={}){
   const sep=API.includes("?")?"&":"?";
   const token=localStorage.getItem(KEY)||"";
   const url=API+sep+"action="+encodeURIComponent(action)+"&token="+encodeURIComponent(token);
-  return fetch(url,options).then(r=>r.json());
+  const cfg={...options};
+  if(cfg.body && typeof cfg.body === "object") cfg.body=JSON.stringify(cfg.body);
+  // Apps Script tidak perlu preflight CORS untuk request text/plain.
+  // Hindari Content-Type: application/json karena browser akan mengirim OPTIONS.
+  if(cfg.method && cfg.method.toUpperCase()==="POST"){
+    cfg.headers={"Content-Type":"text/plain;charset=utf-8"};
+  }
+  return fetch(url,cfg).then(async r=>{
+    const text=await r.text();
+    try{return JSON.parse(text)}catch(_){throw new Error("Backend tidak mengembalikan JSON. Periksa deployment Google Apps Script.")}
+  });
 }
 function showLoginMsg(t,ok=false){document.getElementById("loginMsg").innerHTML='<div class="'+(ok?'info':'notice')+'">'+t+'</div>'}
 function login(){
   const u=document.getElementById("loginUser").value.trim(), p=document.getElementById("loginPass").value;
   if(!API){showLoginMsg("Backend belum diatur. Isi URL backend pada konfigurasi browser atau pasang Apps Script terlebih dahulu.");return;}
-  apiFetch("login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user:u,password:p})})
+  apiFetch("login",{method:"POST",body:{user:u,password:p}})
   .then(d=>{if(!d.ok)throw new Error(d.message||"Login gagal");localStorage.setItem(KEY,d.token);showDashboard();})
-  .catch(e=>showLoginMsg(e.message));
+  .catch(e=>showLoginMsg(e.message || "Tidak dapat menghubungi backend Google Apps Script."));
 }
 function showDashboard(){document.getElementById("loginView").classList.add("hidden");document.getElementById("dashboardView").classList.remove("hidden");loadAll();}
 function logout(){localStorage.removeItem(KEY);location.reload();}
@@ -152,14 +161,14 @@ function payloadEdition(){
  hadith:document.getElementById("edHadith").value,hadithTrans:document.getElementById("edHadithTrans").value,hadithRef:document.getElementById("edHadithRef").value,
  article:document.getElementById("edArticle").value,reflection:document.getElementById("edReflection").value,doa:document.getElementById("edDoa").value,doaTrans:document.getElementById("edDoaTrans").value,doaRef:document.getElementById("edDoaRef").value};
 }
-function saveEdition(){apiFetch("saveEdition",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payloadEdition())}).then(d=>{document.getElementById("editionMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>';if(d.ok)loadAll()}).catch(e=>document.getElementById("editionMsg").innerHTML='<div class="notice">'+e.message+'</div>')}
-function publishEdition(){apiFetch("publishEdition",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payloadEdition())}).then(d=>{document.getElementById("editionMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>';if(d.ok)loadAll()}).catch(e=>document.getElementById("editionMsg").innerHTML='<div class="notice">'+e.message+'</div>')}
-function loadEdition(no){apiFetch("getEdition",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({no})}).then(d=>{if(!d.ok)throw new Error(d.message);const e=d.edition;for(const [id,val] of Object.entries({edNo:e.no,edDate:e.date,edTitle:e.title,edAyah:e.ayah,edAyahTrans:e.ayahTrans,edAyahRef:e.ayahRef,edHadith:e.hadith,edHadithTrans:e.hadithTrans,edHadithRef:e.hadithRef,edArticle:e.article,edReflection:e.reflection,edDoa:e.doa,edDoaTrans:e.doaTrans,edDoaRef:e.doaRef}))document.getElementById(id).value=val||"";window.scrollTo({top:document.getElementById("tab-editions").offsetTop-20,behavior:"smooth"})}).catch(e=>alert(e.message))}
+function saveEdition(){apiFetch("saveEdition",{method:"POST",body:payloadEdition()}).then(d=>{document.getElementById("editionMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>';if(d.ok)loadAll()}).catch(e=>document.getElementById("editionMsg").innerHTML='<div class="notice">'+e.message+'</div>')}
+function publishEdition(){apiFetch("publishEdition",{method:"POST",body:payloadEdition()}).then(d=>{document.getElementById("editionMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>';if(d.ok)loadAll()}).catch(e=>document.getElementById("editionMsg").innerHTML='<div class="notice">'+e.message+'</div>')}
+function loadEdition(no){apiFetch("getEdition",{method:"POST",body:{no}}).then(d=>{if(!d.ok)throw new Error(d.message);const e=d.edition;for(const [id,val] of Object.entries({edNo:e.no,edDate:e.date,edTitle:e.title,edAyah:e.ayah,edAyahTrans:e.ayahTrans,edAyahRef:e.ayahRef,edHadith:e.hadith,edHadithTrans:e.hadithTrans,edHadithRef:e.hadithRef,edArticle:e.article,edReflection:e.reflection,edDoa:e.doa,edDoaTrans:e.doaTrans,edDoaRef:e.doaRef}))document.getElementById(id).value=val||"";window.scrollTo({top:document.getElementById("tab-editions").offsetTop-20,behavior:"smooth"})}).catch(e=>alert(e.message))}
 function saveSettings(){
  const data={waNumber:document.getElementById("waNumber").value.trim(),redactionName:document.getElementById("redactionName").value.trim()};
  API=document.getElementById("apiUrl").value.trim();localStorage.setItem("bt_api_url",API);
  if(!API){document.getElementById("settingsMsg").innerHTML='<div class="notice">URL backend belum diisi.</div>';return;}
- apiFetch("saveSettings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}).then(d=>document.getElementById("settingsMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>').catch(e=>document.getElementById("settingsMsg").innerHTML='<div class="notice">'+e.message+'</div>')
+ apiFetch("saveSettings",{method:"POST",body:data}).then(d=>document.getElementById("settingsMsg").innerHTML='<div class="'+(d.ok?'info':'notice')+'">'+d.message+'</div>').catch(e=>document.getElementById("settingsMsg").innerHTML='<div class="notice">'+e.message+'</div>')
 }
 if(localStorage.getItem(KEY) && API) showDashboard();
 </script>

@@ -26,3 +26,8 @@ KEAMANAN:
 - Jangan menaruh GITHUB_TOKEN di HTML/JavaScript.
 - Jangan menaruh password admin di repository.
 - Jika backend dibatasi Google account, gunakan akun pengurus yang memang diberi akses.
+
+
+PENTING SETELAH PERUBAHAN CODE.GS
+Jika Code.gs diubah, lakukan Deploy > Manage deployments > Edit > New version > Deploy.
+Gunakan URL Web App /exec terbaru pada Admin.
