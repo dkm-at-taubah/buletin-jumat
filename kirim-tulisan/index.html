@@ -12,7 +12,7 @@
 <div class="ribbon">✍️ TERIMA TULISAN</div>
 <h1 class="form-title">Punya Tulisan untuk Dibagi?</h1>
 <p>Kirim tulisan Anda kepada Redaksi Buletin Jumat Masjid At-Taubah BNN RI. Tulisan akan diterima dan dipertimbangkan oleh Redaksi sebelum diterbitkan.</p>
-<div class="info">Silakan lengkapi data berikut. Naskah dapat ditulis langsung pada form atau dikirim sebagai file.</div>
+<div class="info">Silakan lengkapi data berikut. Naskah dapat ditulis langsung pada form atau dikirim sebagai file Word agar mudah diedit oleh Redaksi.</div>
 <form id="submissionForm">
 <div class="section-label">Data Pengirim</div>
 <label>Nama lengkap *<input id="name" required maxlength="120" autocomplete="name"></label>
@@ -23,8 +23,8 @@
 <label>Judul tulisan *<input id="title" required maxlength="200"></label>
 <label>Kategori *<select id="category" required><option value="">Pilih kategori</option><option>Renungan</option><option>Keislaman</option><option>Keluarga</option><option>Pendidikan</option><option>Kesehatan</option><option>Pengalaman</option><option>Lainnya</option></select></label>
 <label>Isi tulisan<textarea id="text" maxlength="30000" placeholder="Tulis naskah Anda di sini..."></textarea></label>
-<label>Atau upload file naskah<input id="file" type="file" accept=".pdf,.doc,.docx,.txt,.rtf"></label>
-<small>Maksimal 5 MB. Jika mengisi naskah dan upload file sekaligus, keduanya tetap diterima.</small>
+<label>Atau upload file naskah Word (.doc/.docx)<input id="file" type="file" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+<small>Maksimal 5 MB. Format file: Word (.doc atau .docx). Jika mengisi naskah dan upload file sekaligus, keduanya tetap diterima.</small>
 <label class="checkline"><input id="agree" type="checkbox" required> Saya memahami bahwa tulisan akan melalui proses pertimbangan dan penyuntingan Redaksi sebelum diterbitkan.</label>
 <div class="form-actions"><a class="btn" href="../edisi/001/">← Kembali ke Buletin</a><button class="btn primary" id="submitBtn" type="submit">📨 Kirim Tulisan</button></div>
 <div id="status" class="status"></div>
@@ -39,6 +39,8 @@ form.addEventListener('submit',async e=>{
  e.preventDefault(); const file=document.getElementById('file').files[0];
  if(!document.getElementById('text').value.trim() && !file){status('Silakan isi naskah atau upload file naskah.',false);return;}
  if(file && file.size>5*1024*1024){status('File terlalu besar. Maksimal 5 MB.',false);return;}
+ if(file && !/\.(doc|docx)$/i.test(file.name)){status('File naskah harus Microsoft Word (.doc atau .docx).',false);return;}
+ if(file && !/\.(doc|docx)$/i.test(file.name)){status('File naskah harus Microsoft Word (.doc atau .docx).',false);return;}
  btn.disabled=true;btn.textContent='⏳ Mengirim...';statusEl.innerHTML='';
  try{
   const body={action:'saveSubmission',name:document.getElementById('name').value.trim(),displayName:document.getElementById('displayName').value.trim(),email:document.getElementById('email').value.trim(),wa:document.getElementById('wa').value.trim(),title:document.getElementById('title').value.trim(),category:document.getElementById('category').value,text:document.getElementById('text').value.trim(),fileName:file?file.name:'',fileType:file?file.type:'',fileData:file?await fileToBase64(file):''};
