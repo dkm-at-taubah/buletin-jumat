@@ -1,234 +1,36 @@
-
 /**
- * BULETIN JUMAT AT-TAUBAH — BACKEND
- * Google Apps Script
- *
- * Spreadsheet tabs created automatically:
- * SETTINGS, EDITIONS, SUBMISSIONS
- *
- * Admin credentials:
- * - ADMIN_USER
- * - ADMIN_PASSWORD
- *
- * Set them in Project Settings > Script properties.
- *
- * Optional GitHub publishing:
- * - GITHUB_TOKEN
- * - GITHUB_OWNER
- * - GITHUB_REPO
- * - GITHUB_BRANCH
- *
- * The GitHub token is stored only in Script Properties, never in public JS.
+ * BULETIN JUMAT AT-TAUBAH — BACKEND v2.0
+ * Workflow: DRAFT -> REVIEW PENGURUS -> PERLU REVISI / DISETUJUI -> TERBIT
+ * Public submissions: form -> Drive (Word) + SUBMISSIONS.
  */
+const SHEETS={SETTINGS:'SETTINGS',EDITIONS:'EDITIONS',SUBMISSIONS:'SUBMISSIONS'};
+const EDITION_HEADERS=['no','date','title','ayah','ayahTrans','ayahRef','hadith','hadithTrans','hadithRef','article','reflection','doa','doaTrans','doaRef','status','updated','reviewToken','reviewNote','approvedAt'];
+const SUB_HEADERS=['id','name','displayName','email','wa','title','category','text','fileUrl','status','created'];
 
-const SHEETS = {
-  SETTINGS: 'SETTINGS',
-  EDITIONS: 'EDITIONS',
-  SUBMISSIONS: 'SUBMISSIONS'
-};
-
-function setup() {
-  const ss = SpreadsheetApp.getActive();
-  ensureSheet_(ss, SHEETS.SETTINGS, ['key','value']);
-  ensureSheet_(ss, SHEETS.EDITIONS, ['no','date','title','ayah','ayahTrans','ayahRef','hadith','hadithTrans','hadithRef','article','reflection','doa','doaTrans','doaRef','status','updated']);
-  ensureSheet_(ss, SHEETS.SUBMISSIONS, ['id','name','displayName','email','wa','title','category','text','fileUrl','status','created']);
-  PropertiesService.getScriptProperties().setProperty('SETUP_DONE','1');
-  return 'Setup selesai';
-}
-
-function ensureSheet_(ss, name, headers) {
-  let sh = ss.getSheetByName(name);
-  if (!sh) sh = ss.insertSheet(name);
-  if (sh.getLastRow() === 0) sh.appendRow(headers);
-}
-
-function doGet(e) {
-  const action = (e.parameter.action || '').trim();
-  const token = e.parameter.token || '';
-  if (action === 'login') return json_({ok:false,message:'Gunakan POST untuk login.'});
-  if (action === 'publicEdition') {
-    return json_(publicEdition_(e.parameter.no || '001'));
-  }
-  if (!validToken_(token)) return json_({ok:false,message:'Tidak berwenang.'});
-  if (action === 'dashboard') return json_(dashboard_());
-  if (action === 'getSettings') return json_({ok:true,settings:getSettings_()});
-  return json_({ok:false,message:'Action tidak dikenal.'});
-}
-
-function doPost(e) {
-  let body = {};
-  try { body = JSON.parse(e.postData.contents || '{}'); } catch (_) {}
-  const action = e.parameter.action || body.action || '';
-  if (action === 'login') return json_(login_(body.user, body.password));
-  // Form kirim tulisan adalah endpoint publik; tidak memerlukan token admin.
-  if (action === 'saveSubmission') return json_(saveSubmission_(body));
-  const token = e.parameter.token || body.token || '';
-  if (!validToken_(token)) return json_({ok:false,message:'Sesi tidak valid.'});
-
-  if (action === 'dashboard') return json_(dashboard_());
-  if (action === 'saveEdition') return json_(saveEdition_(body));
-  if (action === 'getEdition') return json_(getEdition_(body.no));
-  if (action === 'publishEdition') return json_(publishEdition_(body));
-  if (action === 'saveSettings') return json_(saveSettings_(body));
-  return json_({ok:false,message:'Action tidak dikenal.'});
-}
-
-function login_(user, password) {
-  const props = PropertiesService.getScriptProperties();
-  const expectedUser = props.getProperty('ADMIN_USER') || '';
-  const expectedPass = props.getProperty('ADMIN_PASSWORD') || '';
-  if (!expectedUser || !expectedPass) return {ok:false,message:'ADMIN_USER/ADMIN_PASSWORD belum diatur di Script Properties.'};
-  if (String(user) !== expectedUser || String(password) !== expectedPass) return {ok:false,message:'ID admin atau password salah.'};
-  const token = Utilities.getUuid();
-  CacheService.getScriptCache().put('TOKEN_'+token, expectedUser, 21600);
-  return {ok:true,token};
-}
-
-function validToken_(token) {
-  return !!token && !!CacheService.getScriptCache().get('TOKEN_'+token);
-}
-
-function ss_(){ return SpreadsheetApp.getActive(); }
-
-function dashboard_() {
-  setup();
-  const ed = rows_(SHEETS.EDITIONS);
-  const sub = rows_(SHEETS.SUBMISSIONS);
-  const settings = getSettings_();
-  const published = ed.filter(x=>String(x.status).toLowerCase()==='published');
-  published.sort((a,b)=>String(b.no).localeCompare(String(a.no),undefined,{numeric:true}));
-  return {ok:true,editions:ed,submissions:sub,latest:published.length?published[0].no:(ed.length?ed[ed.length-1].no:''),settings};
-}
-
-function rows_(sheetName) {
-  const sh = ss_().getSheetByName(sheetName);
-  if (!sh || sh.getLastRow()<2) return [];
-  const values = sh.getDataRange().getValues();
-  const headers = values.shift();
-  return values.filter(r=>r.join('')!=='').map(r=>headers.reduce((o,h,i)=>(o[h]=r[i],o),{}));
-}
-
-function saveEdition_(d) {
-  setup();
-  if (!d.no || !d.title) return {ok:false,message:'Nomor edisi dan judul wajib diisi.'};
-  const sh = ss_().getSheetByName(SHEETS.EDITIONS);
-  const values = sh.getDataRange().getValues();
-  const headers = values[0];
-  const row = [d.no,d.date||'',d.title,d.ayah||'',d.ayahTrans||'',d.ayahRef||'',d.hadith||'',d.hadithTrans||'',d.hadithRef||'',d.article||'',d.reflection||'',d.doa||'',d.doaTrans||'',d.doaRef||'',d.status||'draft',new Date()];
-  let found = -1;
-  for (let i=1;i<values.length;i++) if(String(values[i][0])===String(d.no)){found=i+1;break;}
-  if(found>0) sh.getRange(found,1,1,row.length).setValues([row]); else sh.appendRow(row);
-  return {ok:true,message:'Edisi '+d.no+' tersimpan.'};
-}
-
-function getEdition_(no) {
-  const list = rows_(SHEETS.EDITIONS).filter(x=>String(x.no)===String(no));
-  return list.length ? {ok:true,edition:list[0]} : {ok:false,message:'Edisi tidak ditemukan.'};
-}
-
-function publicEdition_(no) {
-  setup();
-  const list = rows_(SHEETS.EDITIONS).filter(x=>String(x.no)===String(no));
-  if (!list.length) return {ok:false,message:'Edisi tidak ditemukan.'};
-  return {ok:true,edition:list[0]};
-}
-
-function publishEdition_(d) {
-  const saved = saveEdition_(Object.assign({},d,{status:'published'}));
-  if (!saved.ok) return saved;
-  let github = {ok:true,message:'Tersimpan sebagai published di Spreadsheet.'};
-  const props = PropertiesService.getScriptProperties();
-  if (props.getProperty('GITHUB_TOKEN') && props.getProperty('GITHUB_OWNER') && props.getProperty('GITHUB_REPO')) {
-    github = publishToGitHub_(d);
-  }
-  return {ok:true,message:'Edisi '+d.no+' ditandai terbit. '+github.message};
-}
-
-function getSettings_() {
-  setup();
-  const rows = rows_(SHEETS.SETTINGS);
-  const out={};
-  rows.forEach(r=>out[r.key]=r.value);
-  return out;
-}
-
-function saveSettings_(d) {
-  setup();
-  const sh=ss_().getSheetByName(SHEETS.SETTINGS);
-  const all=sh.getDataRange().getValues();
-  Object.keys(d||{}).forEach(k=>{
-    let row=-1;
-    for(let i=1;i<all.length;i++) if(String(all[i][0])===k){row=i+1;break;}
-    if(row>0) sh.getRange(row,1,1,2).setValues([[k,d[k]]]);
-    else sh.appendRow([k,d[k]]);
-  });
-  return {ok:true,message:'Pengaturan tersimpan.'};
-}
-
-function saveSubmission_(d) {
-  setup();
-  const sh=ss_().getSheetByName(SHEETS.SUBMISSIONS);
-  let fileUrl = d.fileUrl || '';
-  try {
-    if (d.fileData && d.fileName) {
-      const bytes = Utilities.base64Decode(String(d.fileData));
-      if (bytes.length > 5 * 1024 * 1024) throw new Error('File terlalu besar. Maksimal 5 MB.');
-      const props = PropertiesService.getScriptProperties();
-      let folderId = props.getProperty('SUBMISSION_FOLDER_ID') || '';
-      let folder;
-      if (folderId) folder = DriveApp.getFolderById(folderId);
-      else {
-        const it = DriveApp.getFoldersByName('Buletin At-Taubah - Naskah Masuk');
-        folder = it.hasNext() ? it.next() : DriveApp.createFolder('Buletin At-Taubah - Naskah Masuk');
-        props.setProperty('SUBMISSION_FOLDER_ID', folder.getId());
-      }
-      const originalName = String(d.fileName);
-      if (!/\.(doc|docx)$/i.test(originalName)) throw new Error('File naskah harus Microsoft Word (.doc atau .docx).');
-      const safeName = originalName.replace(/[\\/:*?"<>|#%{}]/g,'_').slice(0,180);
-      const blob = Utilities.newBlob(bytes, d.fileType || MimeType.MICROSOFT_WORD, safeName);
-      fileUrl = folder.createFile(blob).getUrl();
-    }
-  } catch (err) {
-    return {ok:false,message:'File gagal disimpan: '+err.message};
-  }
-  sh.appendRow([Utilities.getUuid(),d.name||'',d.displayName||'',d.email||'',d.wa||'',d.title||'',d.category||'',d.text||'',fileUrl,'Masuk',new Date()]);
-  return {ok:true,message:'Tulisan berhasil diterima Redaksi.',fileUrl:fileUrl};
-}
-
-/**
- * Optional: publishes an edition HTML file to GitHub using the Contents API.
- * This does not expose the GitHub token to the browser.
- */
-function publishToGitHub_(d) {
-  const props=PropertiesService.getScriptProperties();
-  const token=props.getProperty('GITHUB_TOKEN');
-  const owner=props.getProperty('GITHUB_OWNER');
-  const repo=props.getProperty('GITHUB_REPO');
-  const branch=props.getProperty('GITHUB_BRANCH') || 'main';
-  const path='edisi/'+String(d.no).padStart(3,'0')+'/index.html';
-  const content=renderEditionHtml_(d);
-  const api='https://api.github.com/repos/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'/contents/'+path;
-  const headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
-  let sha='';
-  try {
-    const get=UrlFetchApp.fetch(api+'?ref='+encodeURIComponent(branch),{method:'get',headers, muteHttpExceptions:true});
-    if(get.getResponseCode()===200) sha=JSON.parse(get.getContentText()).sha||'';
-  } catch (_) {}
-  const payload={message:'Publish Buletin Jumat Edisi '+d.no,content:Utilities.base64Encode(Utilities.newBlob(content,'text/html','index.html').getBytes()),branch};
-  if(sha) payload.sha=sha;
-  const res=UrlFetchApp.fetch(api,{method:'put',contentType:'application/json',headers,payload:JSON.stringify(payload),muteHttpExceptions:true});
-  const ok=res.getResponseCode()>=200 && res.getResponseCode()<300;
-  return {ok,message:ok?'File edisi berhasil dipublish ke GitHub.':'Data tersimpan, tetapi publish GitHub gagal: '+res.getContentText().slice(0,180)};
-}
-
-function renderEditionHtml_(d) {
-  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const paras=String(d.article||'').split(/\n+/).filter(Boolean).map(x=>'<p>'+esc(x)+'</p>').join('');
-  const reflections=String(d.reflection||'').split(/\n+/).filter(Boolean).map(x=>'<li>'+esc(x)+'</li>').join('');
-  const base='../../';
-  return `<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Buletin Jumat Edisi ${esc(d.no)} — ${esc(d.title)}</title><link rel="stylesheet" href="${base}css/style.css"></head><body><div class="top"><div class="wrap"><span>Pengurus DKM Masjid At-Taubah BNN RI</span><span>Media Syiar Digital</span></div></div><header class="mast"><div class="wrap mast-inner"><div><img class="logo" src="${base}assets/logo-dkm.jpg" alt="Logo DKM"></div><div><div class="eyebrow">Buletin Jumat</div><div class="bigtitle"><span>MASJID</span><span>AT-TAUBAH</span></div><div class="brandline">BNN RI</div><div class="tagline">Dari masjid, untuk hati, dan untuk kebaikan.</div></div><div class="mast-quote">“Masjid bukan hanya tempat kita datang, tetapi tempat hati kita kembali.”</div></div></header><div class="edbar"><div class="wrap"><span>EDISI ${esc(d.no)}</span><span>${esc(d.date)}</span><span>Jumat Berkah</span></div></div><main class="wrap page"><div class="layout"><div><section class="card ayah"><div class="ribbon">📖 AYAT JUMAT</div><div class="ayahbody"><div class="ar">${esc(d.ayah)}</div><div class="trans">“${esc(d.ayahTrans)}”</div><div class="src">${esc(d.ayahRef)}</div></div></section><section class="card" style="margin-top:18px"><div class="ribbon">📜 HADIS PILIHAN</div><div class="hadithbody"><div class="ar">${esc(d.hadith)}</div><p class="trans">“${esc(d.hadithTrans)}”</p><div class="src">${esc(d.hadithRef)}</div></div></section></div><div><article class="card cardpad article"><div class="ribbon">🌿 RENUNGAN UTAMA</div><h1>${esc(d.title)}</h1><div class="by">Redaksi DKM At-Taubah</div>${paras}</article></div></div><div class="lower"><section class="card reflection cardpad"><div class="ribbon">💡 UNTUK DIRENUNGKAN</div><ul>${reflections}</ul></section><section class="card doa cardpad"><div class="ribbon">🤲 DOA JUMAT</div><div class="ar small">${esc(d.doa)}</div><p class="trans">“${esc(d.doaTrans)}”</p><div class="src">${esc(d.doaRef)}</div></section></div><section class="card donation"><div class="ribbon">❤️ INFAQ UNTUK MASJID</div><div class="donation-grid"><div><h2>Mari Bersama Memakmurkan Masjid At-Taubah BNN RI</h2><p>Infaq dapat mendukung operasional masjid, kegiatan keagamaan, pembinaan jamaah, dan pelayanan sosial.</p><div class="info">QRIS infaq resmi DKM ditampilkan di area ini.</div></div><div class="qris"><div><div class="qr-placeholder">QRIS DKM</div><strong style="display:block;margin-top:10px;color:#06356d">Scan QRIS Infaq</strong><div class="src">QRIS resmi DKM</div></div></div></div></section><div class="actions"><button class="btn wa" onclick="shareWA()">🟢 Bagikan ke WhatsApp</button><a class="btn primary" href="../../kirim-tulisan/">✍️ Punya Tulisan untuk Dibagi?</a></div></main><footer class="footer"><div class="wrap"><div><strong>🕌 DKM Masjid At-Taubah BNN RI</strong><br><small>Bersama memakmurkan masjid, menguatkan iman, melayani umat.</small></div><div><small>#JumatBerkah • Syiar • Ilmu • Ukhuwah • Infaq</small></div></div></footer><script>function shareWA(){const t='🕌 *Buletin Jumat Masjid At-Taubah BNN RI*\\n\\n*${esc(d.title)}*\\n\\nMari membaca dan menyebarkan kebaikan.\\n\\n👉 '+location.href;window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}</script></body></html>`;
-}
-
-function json_(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-}
+function setup(){const ss=SpreadsheetApp.getActive();ensureHeaders_(ss,SHEETS.SETTINGS,['key','value']);ensureHeaders_(ss,SHEETS.EDITIONS,EDITION_HEADERS);ensureHeaders_(ss,SHEETS.SUBMISSIONS,SUB_HEADERS);PropertiesService.getScriptProperties().setProperty('SETUP_DONE','1');return 'Setup selesai';}
+function ensureHeaders_(ss,name,headers){let sh=ss.getSheetByName(name);if(!sh)sh=ss.insertSheet(name);if(sh.getLastRow()===0){sh.appendRow(headers);return;}const current=sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String);headers.forEach(h=>{if(current.indexOf(h)<0){sh.getRange(1,sh.getLastColumn()+1).setValue(h);current.push(h);}})}
+function doGet(e){const a=(e.parameter.action||'').trim();if(a==='publicEdition')return json_(publicEdition_(e.parameter.no||'001'));if(a==='reviewEdition')return json_(reviewEdition_(e.parameter.no||'',e.parameter.reviewToken||''));if(a==='login')return json_({ok:false,message:'Gunakan POST untuk login.'});const t=e.parameter.token||'';if(!validToken_(t))return json_({ok:false,message:'Tidak berwenang.'});if(a==='dashboard')return json_(dashboard_());if(a==='getSettings')return json_({ok:true,settings:getSettings_()});return json_({ok:false,message:'Action tidak dikenal.'});}
+function doPost(e){let b={};try{b=JSON.parse(e.postData.contents||'{}')}catch(_){ }const a=e.parameter.action||b.action||'';if(a==='login')return json_(login_(b.user,b.password));if(a==='saveSubmission')return json_(saveSubmission_(b));if(a==='reviewDecision')return json_(reviewDecision_(b));const t=e.parameter.token||b.token||'';if(!validToken_(t))return json_({ok:false,message:'Sesi tidak valid.'});if(a==='dashboard')return json_(dashboard_());if(a==='saveEdition')return json_(saveEdition_(b));if(a==='getEdition')return json_(getEdition_(b.no));if(a==='sendToReview')return json_(sendToReview_(b));if(a==='returnToDraft')return json_(returnToDraft_(b));if(a==='approveEdition')return json_(approveEdition_(b));if(a==='publishEdition')return json_(publishEdition_(b));if(a==='saveSettings')return json_(saveSettings_(b));if(a==='updateSubmissionStatus')return json_(updateSubmissionStatus_(b));return json_({ok:false,message:'Action tidak dikenal.'});}
+function login_(u,p){const x=PropertiesService.getScriptProperties(),eu=x.getProperty('ADMIN_USER')||'',ep=x.getProperty('ADMIN_PASSWORD')||'';if(!eu||!ep)return{ok:false,message:'ADMIN_USER/ADMIN_PASSWORD belum diatur di Script Properties.'};if(String(u)!==eu||String(p)!==ep)return{ok:false,message:'ID admin atau password salah.'};const t=Utilities.getUuid();CacheService.getScriptCache().put('TOKEN_'+t,eu,21600);return{ok:true,token:t};}
+function validToken_(t){return !!t&&!!CacheService.getScriptCache().get('TOKEN_'+t)}
+function ss_(){return SpreadsheetApp.getActive()}
+function rows_(n){const sh=ss_().getSheetByName(n);if(!sh||sh.getLastRow()<2)return[];const v=sh.getDataRange().getValues(),h=v.shift();return v.filter(r=>r.join('')!=='').map(r=>h.reduce((o,k,i)=>(o[k]=r[i],o),{}));}
+function dashboard_(){setup();const ed=rows_(SHEETS.EDITIONS),sub=rows_(SHEETS.SUBMISSIONS),settings=getSettings_();const pub=ed.filter(x=>String(x.status).toLowerCase()==='published').sort((a,b)=>String(b.no).localeCompare(String(a.no),undefined,{numeric:true}));return{ok:true,editions:ed,submissions:sub,latest:pub.length?pub[0].no:(ed.length?ed[ed.length-1].no:''),settings};}
+function saveEdition_(d){setup();if(!d.no||!d.title)return{ok:false,message:'Nomor edisi dan judul wajib diisi.'};const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0];const existing=all.slice(1).find(r=>String(r[0])===String(d.no));let status=d.status||'draft';if(existing&&['review','approved','published'].indexOf(String(existing[h.indexOf('status')]))>=0&&status==='draft')status=String(existing[h.indexOf('status')]);const obj={no:d.no,date:d.date||'',title:d.title,ayah:d.ayah||'',ayahTrans:d.ayahTrans||'',ayahRef:d.ayahRef||'',hadith:d.hadith||'',hadithTrans:d.hadithTrans||'',hadithRef:d.hadithRef||'',article:d.article||'',reflection:d.reflection||'',doa:d.doa||'',doaTrans:d.doaTrans||'',doaRef:d.doaRef||'',status,updated:new Date(),reviewToken:existing?existing[h.indexOf('reviewToken')]||'':'',reviewNote:existing?existing[h.indexOf('reviewNote')]||'':'',approvedAt:existing?existing[h.indexOf('approvedAt')]||'':''};const row=h.map(k=>obj[k]===undefined?'':obj[k]);const idx=all.findIndex(r=>String(r[0])===String(d.no));if(idx>0)sh.getRange(idx+1,1,1,h.length).setValues([row]);else sh.appendRow(row);return{ok:true,message:'Edisi '+d.no+' tersimpan sebagai '+status+'.'};}
+function getEdition_(no){const e=rows_(SHEETS.EDITIONS).find(x=>String(x.no)===String(no));return e?{ok:true,edition:e}:{ok:false,message:'Edisi tidak ditemukan.'}}
+function publicEdition_(no){setup();const e=rows_(SHEETS.EDITIONS).find(x=>String(x.no)===String(no));if(!e||String(e.status).toLowerCase()!=='published')return{ok:false,message:'Edisi belum terbit.'};return{ok:true,edition:e};}
+function sendToReview_(d){const s=saveEdition_(Object.assign({},d,{status:'review'}));if(!s.ok)return s;const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0],idx=all.findIndex(r=>String(r[0])===String(d.no));const token=Utilities.getUuid().replace(/-/g,'');sh.getRange(idx+1,h.indexOf('reviewToken')+1).setValue(token);sh.getRange(idx+1,h.indexOf('reviewNote')+1).setValue('');const base=getSettings_().publicBaseUrl||'https://dkm-at-taubah.github.io/buletin-jumat/';const url=String(base).replace(/\/$/,'')+'/review/?no='+encodeURIComponent(d.no)+'&reviewToken='+encodeURIComponent(token);return{ok:true,message:'Edisi '+d.no+' dikirim ke Pengurus untuk review.',reviewUrl:url};}
+function returnToDraft_(d){const e=getEdition_(d.no);if(!e.ok)return e;const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0],idx=all.findIndex(r=>String(r[0])===String(d.no));sh.getRange(idx+1,h.indexOf('status')+1).setValue('draft');sh.getRange(idx+1,h.indexOf('reviewNote')+1).setValue(d.reviewNote||'');return{ok:true,message:'Edisi dikembalikan ke Draft.'};}
+function approveEdition_(d){const e=getEdition_(d.no);if(!e.ok)return e;const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0],idx=all.findIndex(r=>String(r[0])===String(d.no));sh.getRange(idx+1,h.indexOf('status')+1).setValue('approved');sh.getRange(idx+1,h.indexOf('approvedAt')+1).setValue(new Date());return{ok:true,message:'Edisi '+d.no+' disetujui Pengurus. Siap diterbitkan.'};}
+function publishEdition_(d){const e=getEdition_(d.no);if(!e.ok)return e;if(String(e.edition.status).toLowerCase()!=='approved')return{ok:false,message:'Edisi harus berstatus DISETUJUI sebelum diterbitkan.'};const saved=saveEdition_(Object.assign({},d,{status:'published'}));if(!saved.ok)return saved;let gh={ok:true,message:'Tersimpan sebagai published di Spreadsheet.'};const p=PropertiesService.getScriptProperties();if(p.getProperty('GITHUB_TOKEN')&&p.getProperty('GITHUB_OWNER')&&p.getProperty('GITHUB_REPO'))gh=publishToGitHub_(d);return{ok:true,message:'Edisi '+d.no+' berhasil diterbitkan. '+gh.message};}
+function reviewEdition_(no,token){setup();const e=rows_(SHEETS.EDITIONS).find(x=>String(x.no)===String(no)&&String(x.reviewToken)===String(token));if(!e)return{ok:false,message:'Link review tidak valid atau sudah berubah.'};if(String(e.status).toLowerCase()==='published')return{ok:false,message:'Edisi sudah terbit.'};return{ok:true,edition:e};}
+function reviewDecision_(d){setup();const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0],idx=all.findIndex(r=>String(r[0])===String(d.no)&&String(r[h.indexOf('reviewToken')])===String(d.reviewToken));if(idx<1)return{ok:false,message:'Link review tidak valid.'};const current=String(all[idx][h.indexOf('status')]||'');if(current==='published')return{ok:false,message:'Edisi sudah terbit.'};const decision=String(d.decision||'').toLowerCase();if(decision==='approve'){sh.getRange(idx+1,h.indexOf('status')+1).setValue('approved');sh.getRange(idx+1,h.indexOf('approvedAt')+1).setValue(new Date());sh.getRange(idx+1,h.indexOf('reviewNote')+1).setValue(d.note||'');return{ok:true,message:'Edisi disetujui Pengurus. Redaksi dapat menerbitkannya.'};}if(decision==='revisi'){sh.getRange(idx+1,h.indexOf('status')+1).setValue('revisi');sh.getRange(idx+1,h.indexOf('reviewNote')+1).setValue(d.note||'Mohon diperiksa kembali oleh Redaksi.');return{ok:true,message:'Edisi dikembalikan ke Redaksi untuk revisi.'};}return{ok:false,message:'Keputusan review tidak dikenali.'};}
+function getSettings_(){setup();const o={};rows_(SHEETS.SETTINGS).forEach(r=>o[r.key]=r.value);return o}
+function saveSettings_(d){setup();const sh=ss_().getSheetByName(SHEETS.SETTINGS),all=sh.getDataRange().getValues();Object.keys(d||{}).forEach(k=>{const i=all.findIndex((r,n)=>n>0&&String(r[0])===k);if(i>0)sh.getRange(i+1,1,1,2).setValues([[k,d[k]]]);else sh.appendRow([k,d[k]])});return{ok:true,message:'Pengaturan tersimpan.'};}
+function updateSubmissionStatus_(d){const sh=ss_().getSheetByName(SHEETS.SUBMISSIONS),all=sh.getDataRange().getValues(),h=all[0],idx=all.findIndex(r=>String(r[0])===String(d.id));if(idx<1)return{ok:false,message:'Tulisan tidak ditemukan.'};sh.getRange(idx+1,h.indexOf('status')+1).setValue(d.status||'Masuk');return{ok:true,message:'Status tulisan diperbarui.'};}
+function saveSubmission_(d){setup();if(!d.name||!d.email||!d.title)return{ok:false,message:'Nama, email, dan judul tulisan wajib diisi.'};let fileUrl=d.fileUrl||'';try{if(d.fileData&&d.fileName){const name=String(d.fileName);if(!/\.(doc|docx)$/i.test(name))throw new Error('File naskah harus Microsoft Word (.doc atau .docx).');const bytes=Utilities.base64Decode(String(d.fileData));if(bytes.length>5*1024*1024)throw new Error('File terlalu besar. Maksimal 5 MB.');const p=PropertiesService.getScriptProperties(),fid=p.getProperty('SUBMISSION_FOLDER_ID')||'';let folder;if(fid)folder=DriveApp.getFolderById(fid);else{const it=DriveApp.getFoldersByName('Buletin At-Taubah - Naskah Masuk');folder=it.hasNext()?it.next():DriveApp.createFolder('Buletin At-Taubah - Naskah Masuk');p.setProperty('SUBMISSION_FOLDER_ID',folder.getId());}const safe=name.replace(/[\\/:*?"<>|#%{}]/g,'_').slice(0,180);const blob=Utilities.newBlob(bytes,d.fileType||MimeType.MICROSOFT_WORD,safe);fileUrl=folder.createFile(blob).getUrl();}}catch(err){return{ok:false,message:'File gagal disimpan: '+err.message};}ss_().getSheetByName(SHEETS.SUBMISSIONS).appendRow([Utilities.getUuid(),d.name||'',d.displayName||'',d.email||'',d.wa||'',d.title||'',d.category||'',d.text||'',fileUrl,'Masuk',new Date()]);return{ok:true,message:'Tulisan berhasil diterima Redaksi.',fileUrl};}
+function publishToGitHub_(d){const p=PropertiesService.getScriptProperties(),token=p.getProperty('GITHUB_TOKEN'),owner=p.getProperty('GITHUB_OWNER'),repo=p.getProperty('GITHUB_REPO'),branch=p.getProperty('GITHUB_BRANCH')||'main',path='edisi/'+String(d.no).padStart(3,'0')+'/index.html',content=renderEditionHtml_(d),api='https://api.github.com/repos/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'/contents/'+path,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};let sha='';try{const r=UrlFetchApp.fetch(api+'?ref='+encodeURIComponent(branch),{method:'get',headers,muteHttpExceptions:true});if(r.getResponseCode()===200)sha=JSON.parse(r.getContentText()).sha||''}catch(_){}const payload={message:'Publish Buletin Jumat Edisi '+d.no,content:Utilities.base64Encode(Utilities.newBlob(content,'text/html','index.html').getBytes()),branch};if(sha)payload.sha=sha;const r=UrlFetchApp.fetch(api,{method:'put',contentType:'application/json',headers,payload:JSON.stringify(payload),muteHttpExceptions:true}),ok=r.getResponseCode()>=200&&r.getResponseCode()<300;return{ok,message:ok?'File edisi berhasil dipublish ke GitHub.':'Data tersimpan, tetapi publish GitHub gagal: '+r.getContentText().slice(0,180)}}
+function articleHtml_(raw){const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');let s=String(raw||''),out='',pos=0;const re=/\[(AYAT|HADIS)\]([\s\S]*?)\[\/\1\]/gi;let m;while((m=re.exec(s))){out+=paras_(s.slice(pos,m.index),esc);const lines=m[2].trim().split(/\n+/).map(x=>x.trim()).filter(Boolean);const type=m[1].toUpperCase();const ar=lines[0]||'',tr=lines[1]||'',ref=lines[2]||'';out+=`<div class="inserted-quote ${type==='AYAT'?'inserted-ayah':'inserted-hadith'}"><div class="inserted-label">${type==='AYAT'?'📖 AYAT SISIPAN':'📜 HADIS SISIPAN'}</div><div class="ar">${esc(ar)}</div><div class="trans">“${esc(tr)}”</div><div class="src">${esc(ref)}</div></div>`;pos=m.index+m[0].length;}out+=paras_(s.slice(pos),esc);return out;}
+function paras_(txt,esc){return String(txt||'').split(/\n\s*\n|\n/).map(x=>x.trim()).filter(Boolean).map(x=>'<p>'+esc(x)+'</p>').join('')}
+function renderEditionHtml_(d){const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');const reflections=String(d.reflection||'').split(/\n+/).filter(Boolean).map(x=>'<li>'+esc(x)+'</li>').join('');const base='../../';return `<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Buletin Jumat Edisi ${esc(d.no)} — ${esc(d.title)}</title><link rel="stylesheet" href="${base}css/style.css"></head><body><div class="top"><div class="wrap"><span>Pengurus DKM Masjid At-Taubah BNN RI</span><span>Media Syiar Digital</span></div></div><header class="mast"><div class="wrap mast-inner"><div><img class="logo" src="${base}assets/logo-dkm.jpg" alt="Logo DKM"></div><div><div class="eyebrow">Buletin Jumat</div><div class="bigtitle"><span>MASJID</span><span>AT-TAUBAH</span></div><div class="brandline">BNN RI</div><div class="tagline">Dari masjid, untuk hati, dan untuk kebaikan.</div></div><div class="mast-quote">“Masjid bukan hanya tempat kita datang, tetapi tempat hati kita kembali.”</div></div></header><div class="edbar"><div class="wrap"><span>EDISI ${esc(d.no)}</span><span>${esc(d.date)}</span><span>Jumat Berkah</span></div></div><main class="wrap page"><section class="card ayah"><div class="ribbon">📖 AYAT JUMAT</div><div class="ayahbody"><div class="ar">${esc(d.ayah)}</div><div class="trans">“${esc(d.ayahTrans)}”</div><div class="src">${esc(d.ayahRef)}</div></div></section><section class="card" style="margin-top:18px"><div class="ribbon">📜 HADIS PILIHAN</div><div class="hadithbody"><div class="ar">${esc(d.hadith)}</div><p class="trans">“${esc(d.hadithTrans)}”</p><div class="src">${esc(d.hadithRef)}</div></div></section><article class="card cardpad article" style="margin-top:18px"><div class="ribbon">🌿 RENUNGAN UTAMA</div><h1>${esc(d.title)}</h1><div class="by">Redaksi DKM At-Taubah</div>${articleHtml_(d.article)}</article><section class="card reflection cardpad" style="margin-top:18px"><div class="ribbon">💡 UNTUK DIRENUNGKAN</div><ul>${reflections}</ul></section><section class="card doa cardpad" style="margin-top:18px"><div class="ribbon">🤲 DOA JUMAT</div><div class="ar small">${esc(d.doa)}</div><p class="trans">“${esc(d.doaTrans)}”</p><div class="src">${esc(d.doaRef)}</div></section><section class="card donation" style="margin-top:18px"><div class="ribbon">❤️ INFAQ UNTUK MASJID</div><div class="donation-grid"><div><h2>Mari Bersama Memakmurkan Masjid At-Taubah BNN RI</h2><p>Infaq dapat mendukung operasional masjid, kegiatan keagamaan, pembinaan jamaah, dan pelayanan sosial.</p><div class="info">QRIS infaq resmi DKM ditampilkan di area ini.</div></div><div class="qris"><div><div class="qr-placeholder">QRIS DKM</div><strong style="display:block;margin-top:10px;color:#06356d">Scan QRIS Infaq</strong><div class="src">QRIS resmi DKM</div></div></div></div></section><div class="actions"><button class="btn wa" onclick="shareWA()">🟢 Bagikan ke WhatsApp</button><a class="btn primary" href="../../kirim-tulisan/">✍️ Punya Tulisan untuk Dibagi?</a></div></main><footer class="footer"><div class="wrap"><div><strong>🕌 DKM Masjid At-Taubah BNN RI</strong><br><small>Bersama memakmurkan masjid, menguatkan iman, melayani umat.</small></div><div><small>#JumatBerkah • Syiar • Ilmu • Ukhuwah • Infaq</small></div></div></footer><script>function shareWA(){const t='🕌 *Buletin Jumat Masjid At-Taubah BNN RI*\\n\\n*${esc(d.title)}*\\n\\nMari membaca dan menyebarkan kebaikan.\\n\\n👉 '+location.href;window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}</script></body></html>`;}
+function json_(o){return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON)}

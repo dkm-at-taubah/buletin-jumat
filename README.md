@@ -1,66 +1,35 @@
-# BULETIN JUMAT DIGITAL — MASJID AT-TAUBAH BNN RI
+# Buletin Jumat At-Taubah — Full v2.0
 
-Sistem full v1.0 untuk Buletin Jumat digital.
+Struktur final:
+- Homepage: halaman pembuka + "Mari Menambah Ilmu".
+- Setiap edisi: **1 halaman scroll penuh** di `/edisi/001/`, `/edisi/002/`, dst.
+- Form publik: `/kirim-tulisan/` menerima naskah Word `.doc/.docx` maksimal 5 MB.
+- Backend: Google Apps Script + Google Spreadsheet + Google Drive.
+- Workflow redaksi: **DRAFT → REVIEW PENGURUS → PERLU REVISI / DISETUJUI → TERBIT**.
+- Review Pengurus menggunakan link bertoken dengan watermark **DRAFT — REVIEW PENGURUS**.
+- Edisi publik hanya dapat diterbitkan setelah status **approved**.
+- Renungan Utama mendukung sisipan ayat/hadis menggunakan blok `[AYAT]...[/AYAT]` dan `[HADIS]...[/HADIS]`.
 
-## Prinsip
-- Satu repository untuk seluruh perjalanan Buletin Jumat.
-- Setiap Jumat = satu folder edisi baru.
-- Pembaca cukup menerima dan klik link WhatsApp.
-- Web adalah versi utama.
-- Web/link edisi adalah media utama; PDF tidak menjadi bagian dari alur publik.
-- Bagian “Mari Menambah Ilmu” hanya berada di halaman pembuka, bukan di halaman setiap edisi.
-- Pengiriman tulisan dilakukan langsung melalui WhatsApp.
-- Tombol WhatsApp memakai link langsung dan dapat diarahkan ke nomor Redaksi setelah nomor resmi dimasukkan ke konfigurasi.
-- QRIS resmi DKM akan menjadi aset bersama setelah diberikan.
-- Data penulis tidak ditampilkan di halaman publik.
+## Script Properties GAS
+Wajib:
+- `ADMIN_USER`
+- `ADMIN_PASSWORD`
 
-## Struktur
-```text
-buletin-jumat/
-├── index.html
-├── edisi/
-│   ├── 001/
-│   │   └── index.html
-│   └── 002/
-│       └── (disiapkan saat Jumat berikutnya)
-├── assets/
-│   ├── logo-dkm.jpg
-│   └── qris-infaq-dkm.png      # tambahkan QRIS resmi DKM nanti
-├── css/style.css
-├── js/app.js
-└── README.md
-```
+Opsional publish GitHub:
+- `GITHUB_TOKEN`
+- `GITHUB_OWNER`
+- `GITHUB_REPO`
+- `GITHUB_BRANCH` (default `main`)
 
-## Alur mingguan
-1. Tentukan tema.
-2. Siapkan ayat, hadis sahih, renungan, doa, dan refleksi.
-3. Verifikasi sumber oleh redaksi.
-4. Salin folder edisi terakhir menjadi nomor baru.
-5. Ganti judul/tanggal/isi.
-6. Buat PDF edisi.
-7. Upload ke repository.
-8. Bagikan link edisi ke WhatsApp.
+Untuk file kiriman:
+- `SUBMISSION_FOLDER_ID` dapat dibuat otomatis setelah otorisasi Drive.
 
-## URL
-Homepage:
-`dkmattaubah.github.io/buletin-jumat/`
+URL publik default:
+`https://dkm-at-taubah.github.io/buletin-jumat/`
 
-Edisi:
-`dkmattaubah.github.io/buletin-jumat/edisi/001/`
+URL backend default sudah tertanam di Admin dan halaman Review.
 
-Edisi berikutnya:
-`.../edisi/002/`
 
-## Kirim tulisan
-Pengunjung cukup menekan tombol "Punya Tulisan untuk Dibagi?". WhatsApp terbuka dengan pesan awal untuk dikirim ke kontak Redaksi DKM. Naskah/file kemudian dapat dikirim langsung melalui WhatsApp. Nomor Redaksi diatur pada `js/app.js` atau nantinya dipusatkan lewat backend.
-
-## Media utama
-Buletin dibaca langsung melalui link edisi. Jamaah tidak perlu mengunduh aplikasi dan tidak perlu mencari arsip; link edisi dibagikan setiap Jumat melalui WhatsApp.
-
-## Catatan produksi
-- Ganti placeholder QRIS dengan QRIS resmi DKM.
-- Hubungkan form ke backend sebelum publikasi.
-- Verifikasi semua ayat, terjemahan, hadis, nomor hadis, dan atribusi oleh redaksi.
-
-## Admin
-Panel admin berada di `/admin/`. Backend menggunakan Google Apps Script + Google Spreadsheet. Token GitHub, bila digunakan untuk publish otomatis, disimpan di Script Properties dan tidak pernah dikirim ke browser.
+### Tambahan v2.1
+- Form kirim tulisan menambahkan kategori **P4GN** dan penegasan bahwa Redaksi mengharapkan tulisan terkait P4GN (Pencegahan dan Pemberantasan Penyalahgunaan dan Peredaran Gelap Narkotika).
+- Area infaq menyediakan tombol **Unduh QRIS**. Untuk mengaktifkannya dengan QRIS resmi, letakkan file QRIS resmi DKM dengan nama `assets/qris-dkm.jpg`.

@@ -1,33 +1,29 @@
-SETUP BACKEND ADMIN
+SETUP BULETIN JUMAT AT-TAUBAH v2.0
 
-1. Buat Google Spreadsheet khusus "Buletin Jumat At-Taubah".
-2. Extensions > Apps Script.
-3. Tempel Code.gs.
-4. Jalankan fungsi setup() sekali dan beri izin.
-5. Project Settings > Script Properties:
+1. Buka Google Apps Script yang terhubung dengan Spreadsheet.
+2. Tempel seluruh isi backend/Code.gs.
+3. Simpan.
+4. Jalankan fungsi setup() sekali.
+5. Jalankan fungsi authorizeDrive (jika tersedia/ditambahkan) atau kirim satu file Word dari form untuk memicu permintaan izin Drive.
+6. Project Settings > Script Properties:
    ADMIN_USER = admin
-   ADMIN_PASSWORD = GANTI_PASSWORD_KUAT
+   ADMIN_PASSWORD = AtTaubah@2026!
 
-   Untuk publish otomatis ke GitHub (opsional):
-   GITHUB_TOKEN = token GitHub dengan izin Contents untuk repo
+Opsional publish otomatis ke GitHub:
+   GITHUB_TOKEN = token GitHub
    GITHUB_OWNER = dkm-at-taubah
    GITHUB_REPO = buletin-jumat
    GITHUB_BRANCH = main
 
-6. Deploy > New deployment > Web app.
+7. Deploy > New deployment / Manage deployments > Web app.
    Execute as: Me
-   Who has access: sesuai kebutuhan DKM.
-7. Salin URL /exec.
-8. Buka /admin/ di GitHub Pages.
-9. Masukkan URL backend pada menu Pengaturan lalu simpan.
-10. Login menggunakan ADMIN_USER dan ADMIN_PASSWORD.
+   Who has access: Anyone
+8. Gunakan URL /exec yang sama di Admin.
 
-KEAMANAN:
-- Jangan menaruh GITHUB_TOKEN di HTML/JavaScript.
-- Jangan menaruh password admin di repository.
-- Jika backend dibatasi Google account, gunakan akun pengurus yang memang diberi akses.
+Alur:
+DRAFT -> Kirim ke Pengurus -> REVIEW PENGURUS -> (Perlu Revisi / Disetujui) -> Terbit.
 
+Link review memakai token unik per edisi. Halaman review menampilkan watermark DRAFT — REVIEW PENGURUS.
+Pengurus dapat menyetujui atau mengembalikan dengan catatan. Edisi publik hanya boleh terbit setelah status approved.
 
-PENTING SETELAH PERUBAHAN CODE.GS
-Jika Code.gs diubah, lakukan Deploy > Manage deployments > Edit > New version > Deploy.
-Gunakan URL Web App /exec terbaru pada Admin.
+Form publik hanya menerima Word .doc/.docx maksimal 5 MB. File disimpan di Google Drive dan metadata masuk ke SUBMISSIONS.
