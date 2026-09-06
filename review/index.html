@@ -6,5 +6,28 @@ function paras(raw){return String(raw||'').split(/\n\s*\n|\n/).map(x=>x.trim()).
 function article(raw){let s=String(raw||''),out='',pos=0,re=/\[(AYAT|HADIS)\]([\s\S]*?)\[\/\1\]/gi,m;while((m=re.exec(s))){out+=paras(s.slice(pos,m.index));let l=m[2].trim().split(/\n+/).map(x=>x.trim()).filter(Boolean);out+='<div class="inserted-quote"><div class="inserted-label">'+(m[1].toUpperCase()==='AYAT'?'📖 AYAT SISIPAN':'📜 HADIS SISIPAN')+'</div><div class="ar">'+esc(l[0]||'')+'</div><div class="trans">“'+esc(l[1]||'')+'”</div><div class="src">'+esc(l[2]||'')+'</div></div>';pos=m.index+m[0].length}out+=paras(s.slice(pos));return out}
 function decision(d){const note=document.getElementById('note').value.trim();if(d==='revisi'&&!note){document.getElementById('decisionMsg').innerHTML='<div class="notice">Isi catatan revisi terlebih dahulu.</div>';return}fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'reviewDecision',no,reviewToken:token,decision:d,note})}).then(r=>r.json()).then(x=>{document.getElementById('decisionMsg').innerHTML='<div class="'+(x.ok?'info':'notice')+'">'+esc(x.message)+'</div>';if(x.ok){document.querySelector('.review-actions').style.display='none';}}).catch(e=>document.getElementById('decisionMsg').innerHTML='<div class="notice">'+esc(e.message)+'</div>')}
 function render(e){const ref=String(e.reflection||'').split(/\n+/).filter(Boolean).map(x=>'<li>'+esc(x)+'</li>').join('');document.getElementById('content').innerHTML='<div class="edbar"><div class="wrap"><span>EDISI '+esc(e.no)+'</span><span>'+esc(e.date)+'</span><span>REVIEW PENGURUS</span></div></div><main class="wrap page review-content"><section class="card ayah"><div class="ribbon">📖 AYAT JUMAT</div><div class="ayahbody"><div class="ar">'+esc(e.ayah)+'</div><div class="trans">“'+esc(e.ayahTrans)+'”</div><div class="src">'+esc(e.ayahRef)+'</div></div></section><section class="card" style="margin-top:18px"><div class="ribbon">📜 HADIS PILIHAN</div><div class="hadithbody"><div class="ar">'+esc(e.hadith)+'</div><p class="trans">“'+esc(e.hadithTrans)+'”</p><div class="src">'+esc(e.hadithRef)+'</div></div></section><article class="card cardpad article" style="margin-top:18px"><div class="ribbon">🌿 RENUNGAN UTAMA</div><h1>'+esc(e.title)+'</h1><div class="by">Redaksi DKM At-Taubah</div>'+article(e.article)+'</article><section class="card reflection cardpad" style="margin-top:18px"><div class="ribbon">💡 UNTUK DIRENUNGKAN</div><ul>'+ref+'</ul></section><section class="card doa cardpad" style="margin-top:18px"><div class="ribbon">🤲 DOA JUMAT</div><div class="ar small">'+esc(e.doa)+'</div><p class="trans">“'+esc(e.doaTrans)+'”</p><div class="src">'+esc(e.doaRef)+'</div></section><section class="card cardpad" style="margin-top:18px"><div class="ribbon">🔎 KEPUTUSAN PENGURUS</div><p>Setelah membaca seluruh edisi, Pengurus dapat memilih persetujuan atau meminta revisi.</p><label>Catatan (opsional)<textarea id="note" class="admin-area" style="min-height:120px" placeholder="Catatan untuk Redaksi..."></textarea></label><div class="review-actions"><button class="btn" onclick="decision('revisi')">↩️ Kembalikan ke Redaksi</button><button class="btn primary" onclick="decision('approve')">✅ Setujui Edisi</button></div><div id="decisionMsg"></div></section><div class="review-actions"><a class="btn" href="../admin/">⬅️ Kembali ke Admin</a></div></main>';document.getElementById('state').classList.add('hidden');document.getElementById('content').classList.remove('hidden')}
-if(!no||!token){document.getElementById('state').innerHTML='<div class="notice">Link review tidak lengkap.</div>'}else{fetch(API+'?action=reviewEdition&no='+encodeURIComponent(no)+'&reviewToken='+encodeURIComponent(token)).then(r=>r.json()).then(d=>{if(!d.ok)throw new Error(d.message);render(d.edition)}).catch(e=>document.getElementById('state').innerHTML='<div class="notice">'+esc(e.message)+'</div>')}
+function loadReview(){
+  if(!no||!token){
+    document.getElementById('state').innerHTML='<div class="notice">Link review tidak lengkap.</div>';
+    return;
+  }
+  // Gunakan POST text/plain seperti Admin agar tidak terkena CORS preflight/redirect Apps Script.
+  fetch(API,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action:'reviewEdition',no:no,reviewToken:token})
+  })
+  .then(async r=>{
+    const t=await r.text();
+    try{return JSON.parse(t)}catch(_){throw new Error('Backend tidak mengembalikan JSON. Periksa deployment Google Apps Script.')}
+  })
+  .then(d=>{
+    if(!d.ok)throw new Error(d.message||'Review tidak dapat dimuat.');
+    render(d.edition);
+  })
+  .catch(e=>{
+    document.getElementById('state').innerHTML='<div class="notice">'+esc(e.message||'Review tidak dapat dimuat.')+'</div><p style="margin-top:12px;color:#667085">Jika halaman ini baru saja dibuat dari Admin, pastikan deployment Apps Script sudah menggunakan versi terbaru.</p>';
+  });
+}
+loadReview();
 </script></body></html>
