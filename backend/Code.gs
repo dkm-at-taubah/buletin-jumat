@@ -19,7 +19,44 @@ function dashboard_(){setup();const ed=rows_(SHEETS.EDITIONS),sub=rows_(SHEETS.S
 function saveEdition_(d){setup();if(!d.no||!d.title)return{ok:false,message:'Nomor edisi dan judul wajib diisi.'};const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0];const existing=all.slice(1).find(r=>String(r[0])===String(d.no));let status=d.status||'draft';if(existing&&['review','approved','published'].indexOf(String(existing[h.indexOf('status')]))>=0&&status==='draft')status=String(existing[h.indexOf('status')]);const obj={no:d.no,date:d.date||'',title:d.title,ayah:d.ayah||'',ayahTrans:d.ayahTrans||'',ayahRef:d.ayahRef||'',hadith:d.hadith||'',hadithTrans:d.hadithTrans||'',hadithRef:d.hadithRef||'',article:d.article||'',reflection:d.reflection||'',doa:d.doa||'',doaTrans:d.doaTrans||'',doaRef:d.doaRef||'',status,updated:new Date(),reviewToken:existing?existing[h.indexOf('reviewToken')]||'':'',reviewNote:existing?existing[h.indexOf('reviewNote')]||'':'',approvedAt:existing?existing[h.indexOf('approvedAt')]||'':''};const row=h.map(k=>obj[k]===undefined?'':obj[k]);const idx=all.findIndex(r=>String(r[0])===String(d.no));if(idx>0)sh.getRange(idx+1,1,1,h.length).setValues([row]);else sh.appendRow(row);return{ok:true,message:'Edisi '+d.no+' tersimpan sebagai '+status+'.'};}
 function getEdition_(no){const e=rows_(SHEETS.EDITIONS).find(x=>String(x.no)===String(no));return e?{ok:true,edition:e}:{ok:false,message:'Edisi tidak ditemukan.'}}
 function publicEdition_(no){setup();const e=rows_(SHEETS.EDITIONS).find(x=>String(x.no)===String(no));if(!e||String(e.status).toLowerCase()!=='published')return{ok:false,message:'Edisi belum terbit.'};return{ok:true,edition:e};}
-function sendToReview_(d){const s=saveEdition_(Object.assign({},d,{status:'review'}));if(!s.ok)return s;const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0],idx=all.findIndex(r=>String(r[0])===String(d.no));const token=Utilities.getUuid().replace(/-/g,'');sh.getRange(idx+1,h.indexOf('reviewToken')+1).setValue(token);sh.getRange(idx+1,h.indexOf('reviewNote')+1).setValue('');const base=getSettings_().publicBaseUrl||'https://dkm-at-taubah.github.io/buletin-jumat/';const url=String(base).replace(/\/$/,'')+'/review/?no='+encodeURIComponent(d.no)+'&reviewToken='+encodeURIComponent(token);return{ok:true,message:'Edisi '+d.no+' dikirim ke Pengurus untuk review.',reviewUrl:url};}
+function sendToReview_(d){
+  try{
+    setup();
+    if(!d || !d.no || !d.title) return {ok:false,message:'Nomor edisi dan judul wajib diisi.'};
+
+    const saved=saveEdition_(Object.assign({},d,{status:'review'}));
+    if(!saved.ok) return saved;
+
+    const sh=ss_().getSheetByName(SHEETS.EDITIONS);
+    let all=sh.getDataRange().getValues();
+    let h=all[0].map(String);
+    let idx=all.findIndex(r=>String(r[0])===String(d.no));
+    if(idx<1) return {ok:false,message:'Edisi '+d.no+' tidak ditemukan setelah disimpan.'};
+
+    ['reviewToken','reviewNote','approvedAt'].forEach(function(name){
+      if(h.indexOf(name)<0){
+        sh.getRange(1,sh.getLastColumn()+1).setValue(name);
+        h.push(name);
+      }
+    });
+
+    const token=Utilities.getUuid().replace(/-/g,'');
+    sh.getRange(idx+1,h.indexOf('reviewToken')+1).setValue(token);
+    sh.getRange(idx+1,h.indexOf('reviewNote')+1).setValue('');
+
+    const settings=getSettings_();
+    const base=String(settings.publicBaseUrl||'https://dkm-at-taubah.github.io/buletin-jumat/').replace(/\/$/,'');
+    const url=base+'/review/?no='+encodeURIComponent(String(d.no))+'&reviewToken='+encodeURIComponent(token);
+
+    return {
+      ok:true,
+      message:'Edisi '+d.no+' dikirim ke Pengurus untuk review.',
+      reviewUrl:url
+    };
+  }catch(err){
+    return {ok:false,message:'Gagal mengirim ke Pengurus: '+(err&&err.message?err.message:String(err))};
+  }
+}
 function returnToDraft_(d){const e=getEdition_(d.no);if(!e.ok)return e;const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0],idx=all.findIndex(r=>String(r[0])===String(d.no));sh.getRange(idx+1,h.indexOf('status')+1).setValue('draft');sh.getRange(idx+1,h.indexOf('reviewNote')+1).setValue(d.reviewNote||'');return{ok:true,message:'Edisi dikembalikan ke Draft.'};}
 function approveEdition_(d){const e=getEdition_(d.no);if(!e.ok)return e;const sh=ss_().getSheetByName(SHEETS.EDITIONS),all=sh.getDataRange().getValues(),h=all[0],idx=all.findIndex(r=>String(r[0])===String(d.no));sh.getRange(idx+1,h.indexOf('status')+1).setValue('approved');sh.getRange(idx+1,h.indexOf('approvedAt')+1).setValue(new Date());return{ok:true,message:'Edisi '+d.no+' disetujui Pengurus. Siap diterbitkan.'};}
 function publishEdition_(d){const e=getEdition_(d.no);if(!e.ok)return e;if(String(e.edition.status).toLowerCase()!=='approved')return{ok:false,message:'Edisi harus berstatus DISETUJUI sebelum diterbitkan.'};const saved=saveEdition_(Object.assign({},d,{status:'published'}));if(!saved.ok)return saved;let gh={ok:true,message:'Tersimpan sebagai published di Spreadsheet.'};const p=PropertiesService.getScriptProperties();if(p.getProperty('GITHUB_TOKEN')&&p.getProperty('GITHUB_OWNER')&&p.getProperty('GITHUB_REPO'))gh=publishToGitHub_(d);return{ok:true,message:'Edisi '+d.no+' berhasil diterbitkan. '+gh.message};}

@@ -5,11 +5,20 @@ const CONFIG = {
 };
 
 function shareWA(){
-  const text = `🕌 *Buletin Jumat Masjid At-Taubah BNN RI*\n\n*${CONFIG.title}*\n\nMari membaca, mengambil hikmah, dan menyebarkan kebaikan.\n\n👉 ${location.href}`;
-  const target = CONFIG.redactionWA
-    ? "https://wa.me/" + CONFIG.redactionWA + "?text="
+  const pageTitle=(
+    document.querySelector('meta[name="share-title"]')?.content ||
+    document.querySelector('.lead-title')?.textContent ||
+    document.querySelector('h1')?.textContent ||
+    document.title ||
+    CONFIG.title ||
+    "Buletin Jumat"
+  ).replace(/\s+/g," ").trim();
+
+  const text=`🕌 *Buletin Jumat Masjid At-Taubah BNN RI*\n\n*${pageTitle}*\n\nMari membaca, mengambil hikmah, dan menyebarkan kebaikan.\n\n👉 ${location.href}`;
+  const target=CONFIG.redactionWA
+    ? "https://wa.me/"+CONFIG.redactionWA+"?text="
     : "https://wa.me/?text=";
-  window.location.href = target + encodeURIComponent(text);
+  window.location.href=target+encodeURIComponent(text);
 }
 
 function submitWA(){
