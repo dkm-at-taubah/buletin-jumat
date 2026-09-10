@@ -11,23 +11,55 @@ function loadReview(){
     document.getElementById('state').innerHTML='<div class="notice">Link review tidak lengkap.</div>';
     return;
   }
-  // Gunakan POST text/plain seperti Admin agar tidak terkena CORS preflight/redirect Apps Script.
-  fetch(API,{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({action:'reviewEdition',no:no,reviewToken:token})
-  })
-  .then(async r=>{
-    const t=await r.text();
-    try{return JSON.parse(t)}catch(_){throw new Error('Backend tidak mengembalikan JSON. Periksa deployment Google Apps Script.')}
-  })
-  .then(d=>{
-    if(!d.ok)throw new Error(d.message||'Review tidak dapat dimuat.');
-    render(d.edition);
-  })
-  .catch(e=>{
-    document.getElementById('state').innerHTML='<div class="notice">'+esc(e.message||'Review tidak dapat dimuat.')+'</div><p style="margin-top:12px;color:#667085">Jika halaman ini baru saja dibuat dari Admin, pastikan deployment Apps Script sudah menggunakan versi terbaru.</p>';
-  });
+
+  const cb='reviewCallback_'+Date.now();
+  const script=document.createElement('script');
+  let finished=false;
+
+  window[cb]=function(d){
+    if(finished)return;
+    finished=true;
+    try{
+      if(!d||!d.ok)throw new Error((d&&d.message)||'Review tidak dapat dimuat.');
+      render(d.edition);
+    }catch(e){
+      document.getElementById('state').innerHTML=
+        '<div class="notice">'+esc(e.message||'Review tidak dapat dimuat.')+'</div>';
+    }
+    cleanup();
+  };
+
+  function cleanup(){
+    try{delete window[cb]}catch(_){}
+    if(script.parentNode)script.parentNode.removeChild(script);
+  }
+
+  script.onerror=function(){
+    if(finished)return;
+    finished=true;
+    document.getElementById('state').innerHTML=
+      '<div class="notice">Gagal terhubung ke backend Review Pengurus.</div>'+
+      '<p style="margin-top:12px;color:#667085">Pastikan deployment Apps Script sudah versi terbaru.</p>';
+    cleanup();
+  };
+
+  script.src=API+
+    '?action=reviewEdition'+
+    '&no='+encodeURIComponent(no)+
+    '&reviewToken='+encodeURIComponent(token)+
+    '&callback='+encodeURIComponent(cb)+
+    '&_='+Date.now();
+
+  document.body.appendChild(script);
+
+  setTimeout(function(){
+    if(finished)return;
+    finished=true;
+    document.getElementById('state').innerHTML=
+      '<div class="notice">Backend belum merespons.</div>'+
+      '<p style="margin-top:12px;color:#667085">Jika Code.gs baru saja di-deploy, tunggu beberapa detik lalu buka link review baru.</p>';
+    cleanup();
+  },15000);
 }
 loadReview();
 </script></body></html>
